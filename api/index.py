@@ -30,7 +30,7 @@ client = genai.Client(
     api_key=GEMINI_API_KEY
 )
 
-# Keep the Gemini model that is working in your current deployment.
+# Gemini model
 MODEL = "gemini-3.6-flash"
 
 
@@ -40,7 +40,7 @@ MODEL = "gemini-3.6-flash"
 
 app = FastAPI(
     title="Mock Paper Generator - Gemini",
-    version="3.1.0"
+    version="4.0.0"
 )
 
 
@@ -62,51 +62,81 @@ app.add_middleware(
 # ============================================================
 
 class GenerateRequest(BaseModel):
-    text: str = Field(..., min_length=20)
-    count: int = Field(default=15, ge=1, le=30)
+    text: str = Field(
+        ...,
+        min_length=20
+    )
+
+    # DEFAULT = 40
+    # MAXIMUM = 100
+    count: int = Field(
+        default=40,
+        ge=1,
+        le=100
+    )
+
     topic: str = ""
 
 
 class DoubtRequest(BaseModel):
+
     question: str
+
     options: Dict[str, str]
+
     correctAnswer: str
+
     studentAnswer: str = ""
+
     explanation: str = ""
+
     doubt: str
+
     history: List[Dict[str, str]] = Field(
         default_factory=list
     )
 
 
 # ============================================================
-# MCQ JSON SCHEMA
+# STRUCTURED MCQ SCHEMA
 # ============================================================
 
 QUESTION_SCHEMA = {
     "type": "ARRAY",
+
     "items": {
+
         "type": "OBJECT",
+
         "properties": {
+
             "question": {
                 "type": "STRING"
             },
+
             "options": {
+
                 "type": "OBJECT",
+
                 "properties": {
+
                     "A": {
                         "type": "STRING"
                     },
+
                     "B": {
                         "type": "STRING"
                     },
+
                     "C": {
                         "type": "STRING"
                     },
+
                     "D": {
                         "type": "STRING"
                     }
                 },
+
                 "required": [
                     "A",
                     "B",
@@ -114,8 +144,11 @@ QUESTION_SCHEMA = {
                     "D"
                 ]
             },
+
             "correctAnswer": {
+
                 "type": "STRING",
+
                 "enum": [
                     "A",
                     "B",
@@ -123,10 +156,12 @@ QUESTION_SCHEMA = {
                     "D"
                 ]
             },
+
             "explanation": {
                 "type": "STRING"
             }
         },
+
         "required": [
             "question",
             "options",
@@ -146,11 +181,13 @@ def validate_questions(
 ) -> List[Dict[str, Any]]:
 
     if not isinstance(data, list):
+
         raise ValueError(
             "Gemini did not return a question array."
         )
 
     valid = []
+
     seen = set()
 
     for item in data:
@@ -182,14 +219,26 @@ def validate_questions(
             )
         ).strip()
 
+        # ----------------------------------------------------
+        # Question validation
+        # ----------------------------------------------------
+
         if not question:
             continue
+
+        # ----------------------------------------------------
+        # Options validation
+        # ----------------------------------------------------
 
         if not isinstance(
             options,
             dict
         ):
             continue
+
+        # ----------------------------------------------------
+        # Correct answer validation
+        # ----------------------------------------------------
 
         if correct not in [
             "A",
@@ -199,7 +248,12 @@ def validate_questions(
         ]:
             continue
 
+        # ----------------------------------------------------
+        # Normalize options
+        # ----------------------------------------------------
+
         normalized = {
+
             key: str(
                 options.get(
                     key,
@@ -215,6 +269,10 @@ def validate_questions(
             ]
         }
 
+        # ----------------------------------------------------
+        # Make sure all options exist
+        # ----------------------------------------------------
+
         if any(
             not normalized[key]
             for key in [
@@ -224,7 +282,12 @@ def validate_questions(
                 "D"
             ]
         ):
+
             continue
+
+        # ----------------------------------------------------
+        # Duplicate detection
+        # ----------------------------------------------------
 
         duplicate_key = (
             question
@@ -239,49 +302,72 @@ def validate_questions(
             duplicate_key
         )
 
+        # ----------------------------------------------------
+        # Add valid question
+        # ----------------------------------------------------
+
         valid.append({
+
             "question": question,
+
             "options": normalized,
+
             "correctAnswer": correct,
+
             "explanation": explanation
+
         })
 
     return valid
 
 
 # ============================================================
-# TRIM LARGE PDF TEXT
+# TRIM LARGE DOCUMENT
 # ============================================================
 
 def trim_document(
     text: str,
-    max_chars: int = 90000
+    max_chars: int = 120000
 ) -> str:
 
+    """
+    Prevent extremely large PDF text from creating
+    an unnecessarily large Gemini request.
+
+    Beginning, middle and end of the document are preserved.
+    """
+
     if len(text) <= max_chars:
+
         return text
 
     third = max_chars // 3
+
     middle = len(text) // 2
 
     return (
+
         text[:third]
+
         + "\n\n"
-        "[... middle section omitted ...]"
+        "[... middle section omitted for context size ...]"
         "\n\n"
+
         + text[
             middle - third // 2:
             middle + third // 2
         ]
+
         + "\n\n"
-        "[... later section omitted ...]"
+        "[... later section omitted for context size ...]"
         "\n\n"
+
         + text[-third:]
     )
 
 
 # ============================================================
-# HOMEPAGE
+# HOME PAGE
 # ============================================================
 
 @app.get(
@@ -290,29 +376,39 @@ def trim_document(
 )
 def home():
 
-    # api/index.py
-    #       ↓
-    # parent = api/
-    #       ↓
-    # parent.parent = project root
-    #       ↓
-    # index.html
+    """
+    Serve index.html from the project root.
+
+    Project structure:
+
+    project/
+    │
+    ├── api/
+    │   └── index.py
+    │
+    └── index.html
+    """
 
     index_path = (
+
         Path(__file__)
         .resolve()
         .parent
         .parent
         / "index.html"
+
     )
 
     if not index_path.exists():
 
         raise HTTPException(
+
             status_code=404,
+
             detail=(
                 "index.html was not found. "
-                "Make sure index.html is in the project root."
+                "Make sure index.html is in the "
+                "project root."
             )
         )
 
@@ -332,11 +428,14 @@ def home():
 def api_root():
 
     return {
+
         "status": "ok",
+
         "message": (
-            f"Mock Paper Generator API "
+            "Mock Paper Generator API "
             f"using {MODEL} is running."
         )
+
     }
 
 
@@ -350,8 +449,11 @@ def api_root():
 def health():
 
     return {
+
         "status": "healthy",
+
         "model": MODEL
+
     }
 
 
@@ -366,6 +468,10 @@ def generate_questions(
     request: GenerateRequest
 ):
 
+    # --------------------------------------------------------
+    # Get document text
+    # --------------------------------------------------------
+
     document_text = (
         request.text
         .strip()
@@ -378,29 +484,36 @@ def generate_questions(
     if len(document_text) < 20:
 
         raise HTTPException(
+
             status_code=400,
+
             detail=(
                 "The PDF does not contain "
                 "enough readable text."
             )
-        )
 
+        )
 
     # --------------------------------------------------------
     # Question count
+    #
+    # Default = 40
+    # Maximum = 100
     # --------------------------------------------------------
 
     count = min(
+
         max(
             request.count,
             1
         ),
-        30
+
+        100
+
     )
 
-
     # --------------------------------------------------------
-    # Topic
+    # Topic instruction
     # --------------------------------------------------------
 
     topic_instruction = ""
@@ -415,14 +528,14 @@ FOCUS TOPIC:
 
 Generate questions ONLY about this topic.
 
-If the topic is not present in the
+If this topic is not present in the
 source material, return an empty array.
 
 """
 
 
     # --------------------------------------------------------
-    # System instruction
+    # System prompt
     # --------------------------------------------------------
 
     system_instruction = f"""
@@ -435,6 +548,14 @@ the supplied study material.
 
 Generate up to {count} high-quality
 multiple-choice questions.
+
+IMPORTANT:
+
+The requested number of questions is {count}.
+
+Try your best to generate the full
+requested number when there is enough
+usable information in the document.
 
 {topic_instruction}
 
@@ -450,8 +571,8 @@ RULES:
 
 4. Test understanding, concepts,
    definitions, comparisons,
-   processes, applications
-   and important facts.
+   processes, applications,
+   examples and important facts.
 
 5. Every question must have exactly
    four options.
@@ -460,27 +581,36 @@ RULES:
 
 7. Exactly ONE option must be correct.
 
-8. Incorrect options should be plausible.
+8. Incorrect options must be plausible.
 
 9. Avoid ambiguous questions.
 
-10. Do not repeat or closely
-    rephrase questions.
+10. Do not repeat questions.
 
-11. Keep explanations concise
+11. Do not closely rephrase
+    another question.
+
+12. Keep explanations concise
     and educational.
 
-12. Do not invent facts that are
+13. Do not invent facts that are
     not supported by the source.
 
-13. Return ONLY the structured
+14. Questions should have a good
+    mixture of difficulty levels.
+
+15. Avoid generating the same concept
+    repeatedly unless the source contains
+    multiple important aspects of it.
+
+16. Return ONLY the structured
     JSON array.
 
 """
 
 
     # --------------------------------------------------------
-    # Limit document size
+    # Trim document if extremely large
     # --------------------------------------------------------
 
     document_text = trim_document(
@@ -489,7 +619,7 @@ RULES:
 
 
     # --------------------------------------------------------
-    # Prompt
+    # User prompt
     # --------------------------------------------------------
 
     prompt = f"""
@@ -498,11 +628,16 @@ SOURCE DOCUMENT:
 
 {document_text}
 
+END OF SOURCE DOCUMENT.
+
+Generate up to {count} unique MCQs
+based strictly on the source material.
+
 """
 
 
     # --------------------------------------------------------
-    # Gemini
+    # Gemini generation
     # --------------------------------------------------------
 
     try:
@@ -524,11 +659,13 @@ SOURCE DOCUMENT:
                 response_schema=
                     QUESTION_SCHEMA,
 
-                max_output_tokens=
-                    12000
-            )
-        )
+                # Larger output because the user
+                # can request up to 100 questions.
+                max_output_tokens=30000
 
+            )
+
+        )
 
         # ----------------------------------------------------
         # Read Gemini response
@@ -539,13 +676,11 @@ SOURCE DOCUMENT:
             or ""
         ).strip()
 
-
         if not raw:
 
             raise ValueError(
                 "Gemini returned an empty response."
             )
-
 
         # ----------------------------------------------------
         # Parse JSON
@@ -555,15 +690,13 @@ SOURCE DOCUMENT:
             raw
         )
 
-
         # ----------------------------------------------------
-        # Validate
+        # Validate questions
         # ----------------------------------------------------
 
         questions = validate_questions(
             parsed
         )
-
 
         if not questions:
 
@@ -572,14 +705,21 @@ SOURCE DOCUMENT:
                 "any valid questions."
             )
 
+        # ----------------------------------------------------
+        # Never exceed requested count
+        # ----------------------------------------------------
 
-        # Never return more than requested
         questions = questions[:count]
 
+        # ----------------------------------------------------
+        # Return response
+        # ----------------------------------------------------
 
         return {
 
             "success": True,
+
+            "requestedCount": count,
 
             "count": len(
                 questions
@@ -589,11 +729,11 @@ SOURCE DOCUMENT:
 
         }
 
-
     except Exception as error:
 
         print(
-            "\n========== GEMINI GENERATION ERROR =========="
+            "\n"
+            "========== GEMINI GENERATION ERROR =========="
         )
 
         print(
@@ -601,7 +741,8 @@ SOURCE DOCUMENT:
         )
 
         print(
-            "=============================================\n"
+            "============================================="
+            "\n"
         )
 
         raise HTTPException(
@@ -612,6 +753,7 @@ SOURCE DOCUMENT:
                 "Question generation failed: "
                 + str(error)
             )
+
         )
 
 
@@ -628,9 +770,8 @@ def answer_doubt(
 
     options = request.options
 
-
     # --------------------------------------------------------
-    # History
+    # Conversation history
     # --------------------------------------------------------
 
     history_text = ""
@@ -648,16 +789,21 @@ def answer_doubt(
         )
 
         if (
+
             role in [
                 "user",
                 "assistant"
             ]
+
             and content
+
         ):
 
             history_text += (
+
                 f"\n{role.upper()}: "
                 f"{content}"
+
             )
 
 
@@ -670,7 +816,7 @@ def answer_doubt(
 You are a patient and knowledgeable
 university tutor.
 
-The student is reviewing this MCQ:
+The student is reviewing this MCQ.
 
 QUESTION:
 
@@ -737,6 +883,9 @@ RULES:
 6. Do not contradict the
    supplied question context.
 
+7. Explain the concept in a way
+   that helps the student remember it.
+
 """
 
 
@@ -755,15 +904,15 @@ RULES:
             config=types.GenerateContentConfig(
 
                 max_output_tokens=700
-            )
-        )
 
+            )
+
+        )
 
         answer = (
             response.text
             or ""
         ).strip()
-
 
         if not answer:
 
@@ -771,7 +920,6 @@ RULES:
                 "I couldn't generate an explanation. "
                 "Please try rephrasing your doubt."
             )
-
 
         return {
 
@@ -781,11 +929,11 @@ RULES:
 
         }
 
-
     except Exception as error:
 
         print(
-            "\n========== GEMINI DOUBT ERROR =========="
+            "\n"
+            "========== GEMINI DOUBT ERROR =========="
         )
 
         print(
@@ -793,9 +941,9 @@ RULES:
         )
 
         print(
-            "========================================\n"
+            "========================================"
+            "\n"
         )
-
 
         raise HTTPException(
 
@@ -805,6 +953,7 @@ RULES:
                 "Could not answer the doubt: "
                 + str(error)
             )
+
         )
 
 
@@ -828,4 +977,5 @@ if __name__ == "__main__":
                 "8000"
             )
         )
+
     )
