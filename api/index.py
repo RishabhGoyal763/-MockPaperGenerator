@@ -39,13 +39,8 @@ import gridfs
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
 MONGODB_URI = os.getenv("MONGODB_URI")
-
-MONGODB_DB = os.getenv(
-    "MONGODB_DB",
-    "rsmssb_mcq"
-)
+MONGODB_DB = os.getenv("MONGODB_DB", "rsmssb_mcq")
 
 MODEL = os.getenv(
     "GEMINI_MODEL",
@@ -54,69 +49,12 @@ MODEL = os.getenv(
 
 
 # ============================================================
-# REQUIRED ENVIRONMENT VARIABLES
-# ============================================================
-
-if not GEMINI_API_KEY:
-    raise RuntimeError(
-        "GEMINI_API_KEY is missing. "
-        "Add it to Vercel Environment Variables."
-    )
-
-if not MONGODB_URI:
-    raise RuntimeError(
-        "MONGODB_URI is missing. "
-        "Add it to Vercel Environment Variables."
-    )
-
-
-# ============================================================
-# GEMINI CLIENT
-# ============================================================
-
-client = genai.Client(
-    api_key=GEMINI_API_KEY
-)
-
-
-# ============================================================
-# MONGODB
-# ============================================================
-
-mongo = MongoClient(
-    MONGODB_URI,
-    serverSelectionTimeoutMS=5000,
-    connectTimeoutMS=5000,
-)
-
-db = mongo[MONGODB_DB]
-
-studies = db["studies"]
-
-attempts = db["attempts"]
-
-fs = gridfs.GridFS(db)
-
-
-# Create index
-try:
-    studies.create_index(
-        [("created_at", DESCENDING)]
-    )
-except Exception as error:
-    print(
-        "MongoDB index creation warning:",
-        repr(error)
-    )
-
-
-# ============================================================
-# FASTAPI
+# FASTAPI APP
 # ============================================================
 
 app = FastAPI(
     title="RSMSSB Computer Instructor MCQ Platform",
-    version="4.0.0",
+    version="5.0.0",
 )
 
 
@@ -134,7 +72,121 @@ app.add_middleware(
 
 
 # ============================================================
-# REQUEST MODELS
+# GLOBAL CLIENTS
+#
+# IMPORTANT:
+# Do NOT connect to MongoDB during module import.
+# Vercel imports this file when starting a serverless
+# function. Database connections should be created lazily.
+# ============================================================
+
+gemini_client = None
+mongo_client = None
+mongo_db = None
+studies_collection = None
+attempts_collection = None
+grid_fs = None
+
+
+# ============================================================
+# CLIENT INITIALIZATION
+# ============================================================
+
+def get_gemini_client():
+
+    global gemini_client
+
+    if gemini_client is not None:
+        return gemini_client
+
+    api_key = os.getenv("GEMINI_API_KEY")
+
+    if not api_key:
+        raise RuntimeError(
+            "GEMINI_API_KEY is missing."
+        )
+
+    gemini_client = genai.Client(
+        api_key=api_key
+    )
+
+    return gemini_client
+
+
+def get_database():
+
+    global mongo_client
+    global mongo_db
+    global studies_collection
+    global attempts_collection
+    global grid_fs
+
+    if mongo_db is not None:
+        return mongo_db
+
+    mongodb_uri = os.getenv("MONGODB_URI")
+
+    if not mongodb_uri:
+        raise RuntimeError(
+            "MONGODB_URI is missing."
+        )
+
+    database_name = os.getenv(
+        "MONGODB_DB",
+        "rsmssb_mcq"
+    )
+
+    mongo_client = MongoClient(
+        mongodb_uri,
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=5000,
+        socketTimeoutMS=15000,
+        maxPoolSize=10,
+        minPoolSize=0,
+    )
+
+    mongo_db = mongo_client[
+        database_name
+    ]
+
+    studies_collection = mongo_db[
+        "studies"
+    ]
+
+    attempts_collection = mongo_db[
+        "attempts"
+    ]
+
+    grid_fs = gridfs.GridFS(
+        mongo_db
+    )
+
+    return mongo_db
+
+
+def get_studies():
+
+    get_database()
+
+    return studies_collection
+
+
+def get_attempts():
+
+    get_database()
+
+    return attempts_collection
+
+
+def get_gridfs():
+
+    get_database()
+
+    return grid_fs
+
+
+# ============================================================
+# MODELS
 # ============================================================
 
 class GenerateRequest(BaseModel):
@@ -190,7 +242,7 @@ class SaveAttemptRequest(BaseModel):
 
 
 # ============================================================
-# GEMINI STRUCTURED OUTPUT SCHEMA
+# GEMINI RESPONSE SCHEMA
 # ============================================================
 
 QUESTION_SCHEMA = {
@@ -206,7 +258,6 @@ QUESTION_SCHEMA = {
             "items": {
                 "type": "STRING"
             }
-
         },
 
         "questions": {
@@ -253,7 +304,6 @@ QUESTION_SCHEMA = {
                             "C",
                             "D"
                         ]
-
                     },
 
                     "correctAnswer": {
@@ -266,7 +316,6 @@ QUESTION_SCHEMA = {
                             "C",
                             "D"
                         ]
-
                     },
 
                     "explanation": {
@@ -276,7 +325,6 @@ QUESTION_SCHEMA = {
                     "topic": {
                         "type": "STRING"
                     }
-
                 },
 
                 "required": [
@@ -286,18 +334,14 @@ QUESTION_SCHEMA = {
                     "explanation",
                     "topic"
                 ]
-
             }
-
         }
-
     },
 
     "required": [
         "topics",
         "questions"
     ]
-
 }
 
 
@@ -308,7 +352,7 @@ QUESTION_SCHEMA = {
 def trim_document(
     text: str,
     max_chars: int = 90000
-) -> str:
+):
 
     if len(text) <= max_chars:
         return text
@@ -319,21 +363,17 @@ def trim_document(
 
     return (
         text[:third]
-        + "\n\n"
-        "[... middle section omitted ...]"
-        "\n\n"
+        + "\n\n[... middle section omitted ...]\n\n"
         + text[
             middle - third // 2:
             middle + third // 2
         ]
-        + "\n\n"
-        "[... later section ...]"
-        "\n\n"
+        + "\n\n[... later section omitted ...]\n\n"
         + text[-third:]
     )
 
 
-def normalize_topic(value: str) -> str:
+def normalize_topic(value: str):
 
     return " ".join(
         str(value or "")
@@ -342,15 +382,36 @@ def normalize_topic(value: str) -> str:
     )
 
 
+def object_id(value: str):
+
+    try:
+
+        return ObjectId(value)
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid study ID."
+        )
+
+
+# ============================================================
+# VALIDATE GEMINI OUTPUT
+# ============================================================
+
 def validate_generated(
     data: Any,
     requested_count: int
 ):
 
-    if not isinstance(data, dict):
+    if not isinstance(
+        data,
+        dict
+    ):
 
         raise ValueError(
-            "Gemini did not return the expected object."
+            "Gemini did not return a valid object."
         )
 
     raw_topics = data.get(
@@ -367,7 +428,9 @@ def validate_generated(
 
     for topic in raw_topics:
 
-        topic = normalize_topic(topic)
+        topic = normalize_topic(
+            topic
+        )
 
         if (
             topic
@@ -380,14 +443,14 @@ def validate_generated(
 
             topics.append(topic)
 
-    valid = []
+    topic_lookup = {
+        x.lower(): x
+        for x in topics
+    }
+
+    valid_questions = []
 
     seen = set()
-
-    topic_lookup = {
-        topic.lower(): topic
-        for topic in topics
-    }
 
     for item in raw_questions:
 
@@ -445,35 +508,39 @@ def validate_generated(
         ]:
             continue
 
-        opts = {
-            key: str(
+        clean_options = {}
+
+        for letter in [
+            "A",
+            "B",
+            "C",
+            "D"
+        ]:
+
+            value = str(
                 options.get(
-                    key,
+                    letter,
                     ""
                 )
             ).strip()
-            for key in [
-                "A",
-                "B",
-                "C",
-                "D"
-            ]
-        }
 
-        if any(
-            not opts[key]
-            for key in opts
-        ):
+            if not value:
+                break
+
+            clean_options[
+                letter
+            ] = value
+
+        if len(clean_options) != 4:
             continue
 
         if not topic:
             continue
 
-        canonical = topic_lookup.get(
+        if (
             topic.lower()
-        )
-
-        if canonical is None:
+            not in topic_lookup
+        ):
 
             topics.append(topic)
 
@@ -481,118 +548,48 @@ def validate_generated(
                 topic.lower()
             ] = topic
 
-            canonical = topic
+        canonical_topic = topic_lookup[
+            topic.lower()
+        ]
 
-        duplicate_key = question.casefold()
+        key = question.casefold()
 
-        if duplicate_key in seen:
+        if key in seen:
             continue
 
-        seen.add(
-            duplicate_key
-        )
+        seen.add(key)
 
-        valid.append({
+        valid_questions.append({
 
             "question": question,
 
-            "options": opts,
+            "options": clean_options,
 
             "correctAnswer": correct,
 
             "explanation": explanation,
 
-            "topic": canonical
+            "topic": canonical_topic
 
         })
 
-        if len(valid) >= requested_count:
+        if len(valid_questions) >= requested_count:
             break
 
-    if not valid:
+    if not valid_questions:
 
         raise ValueError(
             "Gemini did not generate any valid questions."
         )
 
-    return topics, valid
+    return (
+        topics,
+        valid_questions
+    )
 
 
 # ============================================================
-# GEMINI GENERATION
-# ============================================================
-
-def call_gemini(
-    prompt: str,
-    system_instruction: str,
-    max_output_tokens: int = 14000,
-    retries: int = 3
-):
-
-    last_error = None
-
-    for attempt in range(retries):
-
-        try:
-
-            response = client.models.generate_content(
-
-                model=MODEL,
-
-                contents=prompt,
-
-                config=types.GenerateContentConfig(
-
-                    system_instruction=system_instruction,
-
-                    response_mime_type="application/json",
-
-                    response_schema=QUESTION_SCHEMA,
-
-                    max_output_tokens=max_output_tokens
-
-                )
-
-            )
-
-            return response
-
-        except Exception as error:
-
-            last_error = error
-
-            error_text = str(error).lower()
-
-            temporary_error = (
-                "503" in error_text
-                or "unavailable" in error_text
-                or "high demand" in error_text
-                or "429" in error_text
-                or "rate limit" in error_text
-            )
-
-            if not temporary_error:
-
-                raise
-
-            if attempt < retries - 1:
-
-                wait_time = 2 ** attempt
-
-                print(
-                    f"Gemini temporary error. "
-                    f"Retrying in {wait_time} seconds..."
-                )
-
-                time.sleep(
-                    wait_time
-                )
-
-    raise last_error
-
-
-# ============================================================
-# GENERATE QUESTIONS
+# GEMINI CALL
 # ============================================================
 
 def generate_questions(
@@ -601,11 +598,13 @@ def generate_questions(
     focus_topic: str = ""
 ):
 
-    focus = ""
+    gemini = get_gemini_client()
+
+    focus_instruction = ""
 
     if focus_topic.strip():
 
-        focus = f"""
+        focus_instruction = f"""
 
 FOCUS TOPIC:
 
@@ -613,13 +612,13 @@ FOCUS TOPIC:
 
 Generate questions ONLY about this topic.
 
-If this topic is not supported by the
-source document, return no questions.
+If the topic is not supported by the
+document, do not invent information.
 
 """
 
 
-    system = f"""
+    system_instruction = f"""
 
 You are an expert question writer for
 the RSMSSB Computer Instructor examination.
@@ -627,14 +626,14 @@ the RSMSSB Computer Instructor examination.
 Create up to {count} original MCQs strictly
 from the supplied study material.
 
-============================================================
-STEP 1 — IDENTIFY SUBJECTS
-============================================================
+==================================================
+SUBJECT IDENTIFICATION
+==================================================
 
 First identify the distinct academic/computer
 science subjects actually present in the source.
 
-Examples include:
+Possible subjects include:
 
 Python
 C
@@ -653,32 +652,31 @@ Cyber Security
 Digital Logic
 Theory of Computation
 Information Technology
-Rajasthan Computer Knowledge
 etc.
 
 These are examples only.
 
-DO NOT invent topics that are not supported
+Do NOT invent a subject that is not supported
 by the source document.
 
-============================================================
-STEP 2 — CLASSIFY EVERY QUESTION
-============================================================
+==================================================
+QUESTION CLASSIFICATION
+==================================================
 
 Every question MUST have exactly ONE topic.
 
 Examples:
 
 Python syntax, Python data types,
-Python functions, Python OOP
+functions, classes, OOP
 → Python
 
-C syntax, pointers, memory,
-structures, functions
+C syntax, pointers, structures,
+memory and functions
 → C
 
-C++ classes, inheritance,
-templates, STL
+C++ classes, inheritance, STL,
+templates
 → C++
 
 SQL, normalization, transactions,
@@ -691,62 +689,51 @@ sorting and searching
 → Data Structures & Algorithms
 
 Processes, threads, scheduling,
-deadlocks, memory management
+deadlocks and memory management
 → Operating System
 
 TCP/IP, routing, protocols,
-LAN/WAN, network models
+LAN/WAN and network models
 → Computer Networks
 
-Do not force these labels if another
-more precise subject is supported by
-the document.
+Use a more precise topic when the
+document supports one.
 
-============================================================
-QUESTION RULES
-============================================================
+==================================================
+MCQ RULES
+==================================================
 
 1. Every question must be answerable
    from the supplied document.
 
-2. Do not copy sentences directly
-   from the source.
+2. Do not copy source sentences.
 
-3. Write original question wording.
+3. Create original questions.
 
-4. Test understanding, concepts,
-   definitions, comparisons,
-   processes, applications and
-   important facts.
+4. Exactly four options:
+   A, B, C and D.
 
-5. Every question must have exactly
-   four options.
+5. Exactly one correct answer.
 
-6. Options must be A, B, C and D.
+6. Distractors must be plausible.
 
-7. Exactly one option must be correct.
+7. Avoid ambiguity.
 
-8. Incorrect options must be plausible.
+8. Avoid duplicate questions.
 
-9. Avoid ambiguous questions.
+9. Explanations must be concise.
 
-10. Do not repeat questions.
+10. Do not invent unsupported facts.
 
-11. Keep explanations concise
-    and educational.
+11. Every question must have exactly
+    one topic.
 
-12. Do not invent unsupported facts.
+12. Topic must be supported by the
+    source document.
 
-13. Assign exactly one topic to
-    every question.
+13. Return ONLY structured JSON.
 
-14. The topic must be supported
-    by the supplied document.
-
-15. Return ONLY the structured JSON.
-
-{focus}
-
+{focus_instruction}
 """
 
 
@@ -759,94 +746,125 @@ SOURCE DOCUMENT:
 """
 
 
-    response = call_gemini(
+    last_error = None
 
-        prompt=prompt,
+    for attempt in range(3):
 
-        system_instruction=system,
+        try:
 
-        max_output_tokens=14000,
+            response = gemini.models.generate_content(
 
-        retries=3
+                model=MODEL,
 
-    )
+                contents=prompt,
 
+                config=types.GenerateContentConfig(
 
-    raw = (
-        response.text or ""
-    ).strip()
+                    system_instruction=(
+                        system_instruction
+                    ),
 
+                    response_mime_type=(
+                        "application/json"
+                    ),
 
-    if not raw:
+                    response_schema=(
+                        QUESTION_SCHEMA
+                    ),
 
-        raise ValueError(
-            "Gemini returned an empty response."
-        )
+                    max_output_tokens=14000
+                )
+            )
 
+            raw = (
+                response.text or ""
+            ).strip()
 
-    data = json.loads(
-        raw
-    )
+            if not raw:
 
+                raise ValueError(
+                    "Gemini returned an empty response."
+                )
 
-    return validate_generated(
-        data,
-        count
-    )
+            data = json.loads(
+                raw
+            )
+
+            return validate_generated(
+                data,
+                count
+            )
+
+        except Exception as error:
+
+            last_error = error
+
+            message = str(
+                error
+            ).lower()
+
+            temporary = (
+                "503" in message
+                or "unavailable" in message
+                or "high demand" in message
+                or "429" in message
+                or "rate limit" in message
+                or "timeout" in message
+            )
+
+            if not temporary:
+                raise
+
+            if attempt < 2:
+
+                wait_seconds = (
+                    2 ** attempt
+                )
+
+                print(
+                    "Gemini temporary error. "
+                    f"Retrying in "
+                    f"{wait_seconds}s..."
+                )
+
+                time.sleep(
+                    wait_seconds
+                )
+
+    raise last_error
 
 
 # ============================================================
-# OBJECT ID HELPER
-# ============================================================
-
-def oid(value: str):
-
-    try:
-
-        return ObjectId(value)
-
-    except Exception:
-
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid study ID."
-        )
-
-
-# ============================================================
-# FRONTEND
+# ROOT
 # ============================================================
 
 @app.get(
     "/",
     include_in_schema=False
 )
-def home():
+def root():
 
-    project_root = (
+    frontend = (
         Path(__file__)
         .resolve()
         .parent
         .parent
-    )
-
-    frontend_path = (
-        project_root
         / "new.html"
     )
 
-    if not frontend_path.exists():
+    if not frontend.exists():
 
-        raise HTTPException(
-            status_code=404,
-            detail=(
-                "new.html not found "
-                "in the project root."
+        return {
+            "status": "ok",
+            "message": (
+                "RSMSSB MCQ API is running. "
+                "new.html was not found."
             )
-        )
+        }
 
     return FileResponse(
-        str(frontend_path)
+        str(frontend),
+        media_type="text/html"
     )
 
 
@@ -862,18 +880,20 @@ def api_root():
 
     return {
 
-        "status": "ok",
+        "success": True,
 
         "message": (
             "RSMSSB Computer Instructor "
-            f"MCQ Platform using {MODEL}"
-        )
+            "MCQ Platform API"
+        ),
+
+        "model": MODEL
 
     }
 
 
 # ============================================================
-# HEALTH CHECK
+# HEALTH
 # ============================================================
 
 @app.get(
@@ -881,20 +901,26 @@ def api_root():
 )
 def health():
 
-    database_status = "unknown"
+    database = "not_checked"
 
     try:
 
-        mongo.admin.command(
+        get_database()
+
+        mongo_client.admin.command(
             "ping"
         )
 
-        database_status = "connected"
+        database = "connected"
 
-    except Exception:
+    except Exception as error:
 
-        database_status = "unavailable"
+        print(
+            "HEALTH MONGODB ERROR:",
+            repr(error)
+        )
 
+        database = "unavailable"
 
     return {
 
@@ -902,7 +928,7 @@ def health():
 
         "model": MODEL,
 
-        "database": database_status
+        "database": database
 
     }
 
@@ -918,7 +944,9 @@ def list_studies():
 
     try:
 
-        docs = studies.find(
+        collection = get_studies()
+
+        documents = collection.find(
             {},
             {
                 "pdf_file_id": 0,
@@ -930,11 +958,17 @@ def list_studies():
             DESCENDING
         )
 
-        result = []
+        studies_result = []
 
-        for document in docs:
+        for document in documents:
 
-            result.append({
+            created_at = (
+                document.get(
+                    "created_at"
+                )
+            )
+
+            studies_result.append({
 
                 "id": str(
                     document["_id"]
@@ -958,12 +992,8 @@ def list_studies():
                 ),
 
                 "created_at": (
-                    document
-                    .get("created_at")
-                    .isoformat()
-                    if document.get(
-                        "created_at"
-                    )
+                    created_at.isoformat()
+                    if created_at
                     else None
                 )
 
@@ -973,7 +1003,7 @@ def list_studies():
 
             "success": True,
 
-            "studies": result
+            "studies": studies_result
 
         }
 
@@ -985,16 +1015,19 @@ def list_studies():
         )
 
         raise HTTPException(
+
             status_code=500,
+
             detail=(
-                f"Could not load studies: "
+                "Could not load studies: "
                 f"{error}"
             )
+
         )
 
 
 # ============================================================
-# GET SINGLE STUDY
+# GET STUDY
 # ============================================================
 
 @app.get(
@@ -1004,11 +1037,15 @@ def get_study(
     study_id: str
 ):
 
-    document = studies.find_one(
-        {
-            "_id": oid(study_id)
-        }
-    )
+    collection = get_studies()
+
+    document = collection.find_one({
+
+        "_id": object_id(
+            study_id
+        )
+
+    })
 
     if not document:
 
@@ -1016,6 +1053,12 @@ def get_study(
             status_code=404,
             detail="Study not found."
         )
+
+    created_at = (
+        document.get(
+            "created_at"
+        )
+    )
 
     return {
 
@@ -1050,12 +1093,8 @@ def get_study(
             ),
 
             "created_at": (
-                document
-                .get("created_at")
-                .isoformat()
-                if document.get(
-                    "created_at"
-                )
+                created_at.isoformat()
+                if created_at
                 else None
             )
 
@@ -1065,7 +1104,7 @@ def get_study(
 
 
 # ============================================================
-# DOWNLOAD ORIGINAL PDF
+# PDF
 # ============================================================
 
 @app.get(
@@ -1075,14 +1114,21 @@ def download_pdf(
     study_id: str
 ):
 
-    document = studies.find_one(
+    collection = get_studies()
+
+    document = collection.find_one(
+
         {
-            "_id": oid(study_id)
+            "_id": object_id(
+                study_id
+            )
         },
+
         {
             "pdf_file_id": 1,
             "name": 1
         }
+
     )
 
     if not document:
@@ -1092,9 +1138,11 @@ def download_pdf(
             detail="Study not found."
         )
 
-    if not document.get(
+    file_id = document.get(
         "pdf_file_id"
-    ):
+    )
+
+    if not file_id:
 
         raise HTTPException(
             status_code=404,
@@ -1103,13 +1151,16 @@ def download_pdf(
 
     try:
 
-        grid_file = fs.get(
-            document[
-                "pdf_file_id"
-            ]
+        stored_file = get_gridfs().get(
+            file_id
         )
 
-    except Exception:
+    except Exception as error:
+
+        print(
+            "GRIDFS GET ERROR:",
+            repr(error)
+        )
 
         raise HTTPException(
             status_code=404,
@@ -1123,7 +1174,7 @@ def download_pdf(
 
     return StreamingResponse(
 
-        grid_file,
+        stored_file,
 
         media_type="application/pdf",
 
@@ -1136,7 +1187,7 @@ def download_pdf(
 
 
 # ============================================================
-# CREATE PERMANENT STUDY
+# CREATE STUDY
 # ============================================================
 
 @app.post(
@@ -1163,64 +1214,70 @@ async def create_study(
     ):
 
         raise HTTPException(
+
             status_code=400,
+
             detail=(
                 "Only PDF files "
                 "are supported."
             )
-        )
 
+        )
 
     if len(
         text.strip()
     ) < 20:
 
         raise HTTPException(
+
             status_code=400,
+
             detail=(
                 "The PDF does not contain "
                 "enough readable text."
             )
-        )
 
+        )
 
     try:
 
-        count = int(count)
+        count = int(
+            count
+        )
 
     except Exception:
 
         count = 50
-
 
     count = min(
         max(count, 1),
         100
     )
 
-
     try:
 
         print(
-            "Generating questions..."
+            f"Generating {count} questions "
+            f"from {filename}"
         )
 
         topics, questions = (
             generate_questions(
-                text,
-                count,
-                topic
+
+                document_text=text,
+
+                count=count,
+
+                focus_topic=topic
+
             )
         )
-
 
         print(
             f"Generated {len(questions)} questions."
         )
 
-
         pdf_bytes = await file.read()
-
 
         if not pdf_bytes:
 
@@ -1228,14 +1285,15 @@ async def create_study(
                 "Uploaded PDF is empty."
             )
 
-
         now = datetime.now(
             timezone.utc
         )
 
+        # Get database only now
+        collection = get_studies()
 
-        # Store PDF permanently
-        grid_id = fs.put(
+        # Store PDF
+        file_id = get_gridfs().put(
 
             pdf_bytes,
 
@@ -1249,12 +1307,11 @@ async def create_study(
 
         )
 
-
         document = {
 
             "name": filename,
 
-            "pdf_file_id": grid_id,
+            "pdf_file_id": file_id,
 
             "text": text,
 
@@ -1266,11 +1323,9 @@ async def create_study(
 
         }
 
-
-        result = studies.insert_one(
+        result = collection.insert_one(
             document
         )
-
 
         return {
 
@@ -1292,16 +1347,18 @@ async def create_study(
 
         }
 
-
     except HTTPException:
 
         raise
 
-
     except Exception as error:
 
         print(
-            "\n========== CREATE STUDY ERROR =========="
+            "================================"
+        )
+
+        print(
+            "CREATE STUDY ERROR:"
         )
 
         print(
@@ -1309,9 +1366,8 @@ async def create_study(
         )
 
         print(
-            "=========================================\n"
+            "================================"
         )
-
 
         raise HTTPException(
 
@@ -1326,7 +1382,7 @@ async def create_study(
 
 
 # ============================================================
-# COMPATIBILITY GENERATE ENDPOINT
+# GENERATE COMPATIBILITY ENDPOINT
 # ============================================================
 
 @app.post(
@@ -1340,9 +1396,13 @@ def generate_compat(
 
         topics, questions = (
             generate_questions(
-                request.text,
-                request.count,
-                request.topic
+
+                document_text=request.text,
+
+                count=request.count,
+
+                focus_topic=request.topic
+
             )
         )
 
@@ -1380,7 +1440,7 @@ def generate_compat(
 
 
 # ============================================================
-# SAVE EXAM ATTEMPT
+# SAVE ATTEMPT
 # ============================================================
 
 @app.post(
@@ -1397,30 +1457,38 @@ def save_attempt(
     if request.study_id != study_id:
 
         raise HTTPException(
+
             status_code=400,
+
             detail="Study ID mismatch."
+
         )
 
-
-    study_oid = oid(
+    study_oid = object_id(
         study_id
     )
 
+    collection = get_studies()
 
-    if not studies.find_one(
+    if not collection.find_one(
+
         {
             "_id": study_oid
         },
+
         {
             "_id": 1
         }
+
     ):
 
         raise HTTPException(
-            status_code=404,
-            detail="Study not found."
-        )
 
+            status_code=404,
+
+            detail="Study not found."
+
+        )
 
     document = {
 
@@ -1442,11 +1510,9 @@ def save_attempt(
 
     }
 
-
-    attempts.insert_one(
+    get_attempts().insert_one(
         document
     )
-
 
     return {
         "success": True
@@ -1464,25 +1530,33 @@ def get_attempts(
     study_id: str
 ):
 
-    study_oid = oid(
+    study_oid = object_id(
         study_id
     )
 
-
-    rows = attempts.find(
-        {
-            "study_id": study_oid
-        }
-    ).sort(
-        "created_at",
-        DESCENDING
-    ).limit(50)
-
+    documents = (
+        get_attempts()
+        .find(
+            {
+                "study_id": study_oid
+            }
+        )
+        .sort(
+            "created_at",
+            DESCENDING
+        )
+        .limit(50)
+    )
 
     result = []
 
+    for document in documents:
 
-    for document in rows:
+        created_at = (
+            document.get(
+                "created_at"
+            )
+        )
 
         result.append({
 
@@ -1511,17 +1585,12 @@ def get_attempts(
             ),
 
             "created_at": (
-                document
-                .get("created_at")
-                .isoformat()
-                if document.get(
-                    "created_at"
-                )
+                created_at.isoformat()
+                if created_at
                 else None
             )
 
         })
-
 
     return {
 
@@ -1543,62 +1612,58 @@ def delete_study(
     study_id: str
 ):
 
-    study_oid = oid(
+    study_oid = object_id(
         study_id
     )
 
+    collection = get_studies()
 
-    document = studies.find_one(
-        {
-            "_id": study_oid
-        }
-    )
+    document = collection.find_one({
 
+        "_id": study_oid
+
+    })
 
     if not document:
 
         raise HTTPException(
+
             status_code=404,
+
             detail="Study not found."
+
         )
 
-
-    # Delete PDF from GridFS
-    if document.get(
+    file_id = document.get(
         "pdf_file_id"
-    ):
+    )
+
+    if file_id:
 
         try:
 
-            fs.delete(
-                document[
-                    "pdf_file_id"
-                ]
+            get_gridfs().delete(
+                file_id
             )
 
         except Exception as error:
 
             print(
-                "GridFS delete warning:",
+                "GRIDFS DELETE WARNING:",
                 repr(error)
             )
 
+    get_attempts().delete_many({
 
-    # Delete attempts
-    attempts.delete_many(
-        {
-            "study_id": study_oid
-        }
-    )
+        "study_id": study_oid
 
+    })
 
-    # Delete study
-    studies.delete_one(
-        {
-            "_id": study_oid
-        }
-    )
+    collection.delete_one({
 
+        "_id": study_oid
+
+    })
 
     return {
         "success": True
@@ -1606,7 +1671,7 @@ def delete_study(
 
 
 # ============================================================
-# AI DOUBT TUTOR
+# AI DOUBT
 # ============================================================
 
 @app.post(
@@ -1617,7 +1682,6 @@ def answer_doubt(
 ):
 
     history_text = ""
-
 
     for item in request.history[-8:]:
 
@@ -1630,7 +1694,6 @@ def answer_doubt(
             "content",
             ""
         )
-
 
         if (
             role in [
@@ -1645,19 +1708,16 @@ def answer_doubt(
                 f"{content}"
             )
 
-
     prompt = f"""
 
 You are a patient and knowledgeable
 university tutor.
 
-The student is reviewing this MCQ.
-
-QUESTION:
+Question:
 
 {request.question}
 
-OPTIONS:
+Options:
 
 A) {request.options.get("A", "")}
 
@@ -1667,54 +1727,46 @@ C) {request.options.get("C", "")}
 
 D) {request.options.get("D", "")}
 
-CORRECT ANSWER:
+Correct answer:
 
 {request.correctAnswer}
-—
+-
 {request.options.get(
     request.correctAnswer,
     ""
 )}
 
-STUDENT'S ANSWER:
+Student's answer:
 
 {request.studentAnswer or "(not recorded)"}
 
-OFFICIAL EXPLANATION:
+Official explanation:
 
 {request.explanation or "(none provided)"}
 
-PREVIOUS CONVERSATION:
+Previous conversation:
 
 {history_text}
 
-CURRENT STUDENT DOUBT:
+Current student doubt:
 
 {request.doubt}
 
-RULES:
+Stay focused on this question.
 
-1. Stay focused on this question.
+Use simple language.
 
-2. Explain the underlying concept.
+Correct misconceptions.
 
-3. Use simple language.
-
-4. Correct misconceptions.
-
-5. Refer to the options when useful.
-
-6. Normally answer in 2-5 sentences.
-
-7. Do not contradict the supplied
-   question context.
+Normally answer in 2-5 sentences.
 
 """
 
-
     try:
 
-        response = client.models.generate_content(
+        gemini = get_gemini_client()
+
+        response = gemini.models.generate_content(
 
             model=MODEL,
 
@@ -1728,11 +1780,9 @@ RULES:
 
         )
 
-
         answer = (
             response.text or ""
         ).strip()
-
 
         if not answer:
 
@@ -1740,7 +1790,6 @@ RULES:
                 "I couldn't generate "
                 "an answer."
             )
-
 
         return {
 
@@ -1750,14 +1799,12 @@ RULES:
 
         }
 
-
     except Exception as error:
 
         print(
-            "GEMINI DOUBT ERROR:",
+            "DOUBT ERROR:",
             repr(error)
         )
-
 
         raise HTTPException(
 
@@ -1772,7 +1819,7 @@ RULES:
 
 
 # ============================================================
-# LOCAL DEVELOPMENT
+# LOCAL DEVELOPMENT ONLY
 # ============================================================
 
 if __name__ == "__main__":
