@@ -6,7 +6,8 @@
 <title>Mock Paper Generator</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin href="https://fonts.googleapis.com">
+
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -26,764 +27,1826 @@
   --shadow:rgba(32,40,60,.14);
   --radius:4px;
 }
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
+
+*{
+  box-sizing:border-box;
+}
+
+html,
+body{
+  margin:0;
+  padding:0;
+}
+
 body{
   background:
-    radial-gradient(circle at 10% 0%,rgba(184,134,46,.05),transparent 40%),
+    radial-gradient(
+      circle at 10% 0%,
+      rgba(184,134,46,.05),
+      transparent 40%
+    ),
     var(--paper);
+
   color:var(--ink);
+
   font-family:'IBM Plex Sans',sans-serif;
+
   min-height:100vh;
+
   padding:32px 16px 64px;
 }
-.wrap{max-width:760px;margin:0 auto}
+
+.wrap{
+  max-width:760px;
+  margin:0 auto;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
 header.hero{
   text-align:left;
   margin-bottom:36px;
   border-bottom:2px solid var(--ink);
   padding-bottom:18px;
 }
+
 .eyebrow{
   font-family:'IBM Plex Mono',monospace;
   font-size:11px;
   letter-spacing:.16em;
   text-transform:uppercase;
   color:var(--red);
+
   display:flex;
   align-items:center;
   gap:8px;
+
   margin-bottom:10px;
 }
+
 .eyebrow::before{
   content:"";
-  width:8px;height:8px;
+
+  width:8px;
+  height:8px;
+
   background:var(--red);
+
   border-radius:50%;
+
   display:inline-block;
 }
+
 h1{
   font-family:'Newsreader',serif;
   font-weight:600;
+
   font-size:clamp(30px,5vw,42px);
+
   margin:0 0 8px;
+
   line-height:1.08;
 }
-h1 em{font-style:italic;color:var(--red);font-weight:500}
+
+h1 em{
+  font-style:italic;
+  color:var(--red);
+  font-weight:500;
+}
+
 .sub{
   color:var(--ink-soft);
+
   font-size:15px;
+
   max-width:570px;
+
   line-height:1.5;
 }
+
+/* =========================================================
+   CARD
+========================================================= */
+
 .card{
   background:var(--paper-card);
+
   border:1px solid var(--rule);
+
   border-radius:var(--radius);
-  box-shadow:0 1px 2px var(--shadow),0 8px 24px -18px var(--shadow);
+
+  box-shadow:
+    0 1px 2px var(--shadow),
+    0 8px 24px -18px var(--shadow);
+
   padding:28px;
+
   margin-bottom:20px;
+
   position:relative;
 }
+
 .card::before{
   content:"";
+
   position:absolute;
-  left:0;top:22px;bottom:22px;width:3px;
-  background:repeating-linear-gradient(to bottom,var(--rule) 0 6px,transparent 6px 12px);
+
+  left:0;
+  top:22px;
+  bottom:22px;
+
+  width:3px;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      var(--rule) 0 6px,
+      transparent 6px 12px
+    );
 }
-.card-inner{padding-left:16px}
+
+.card-inner{
+  padding-left:16px;
+}
+
+/* =========================================================
+   FORM
+========================================================= */
+
 label.field-label{
   display:block;
+
   font-family:'IBM Plex Mono',monospace;
+
   font-size:11px;
+
   letter-spacing:.1em;
+
   text-transform:uppercase;
+
   color:var(--ink-faint);
+
   margin-bottom:8px;
 }
-.field-gap{margin-bottom:22px}
+
+.field-gap{
+  margin-bottom:22px;
+}
+
+/* =========================================================
+   DROPZONE
+========================================================= */
+
 .dropzone{
   border:1.5px dashed var(--ink-faint);
+
   border-radius:var(--radius);
+
   padding:22px 18px;
+
   text-align:center;
+
   cursor:pointer;
-  transition:border-color .15s,background .15s;
+
+  transition:
+    border-color .15s,
+    background .15s;
+
   background:var(--paper);
 }
-.dropzone:hover,.dropzone.drag{
+
+.dropzone:hover,
+.dropzone.drag{
   border-color:var(--red);
   background:#F7F0EC;
 }
-.dz-title{font-weight:600;font-size:14.5px;margin-bottom:4px}
-.dz-sub{font-size:12.5px;color:var(--ink-faint)}
+
+.dz-title{
+  font-weight:600;
+  font-size:14.5px;
+  margin-bottom:4px;
+}
+
+.dz-sub{
+  font-size:12.5px;
+  color:var(--ink-faint);
+}
+
 .dz-file{
   font-family:'IBM Plex Mono',monospace;
   font-size:12.5px;
   color:var(--green);
   margin-top:8px;
 }
-input[type=file]{display:none}
-input[type=text],input[type=number]{
+
+input[type=file]{
+  display:none;
+}
+
+/* =========================================================
+   INPUTS
+========================================================= */
+
+input[type=text],
+input[type=number]{
   font-family:'Newsreader',serif;
   color:var(--ink);
   outline:none;
 }
+
 input[type=text]{
   width:100%;
+
   font-size:19px;
+
   padding:10px 2px;
+
   border:none;
+
   border-bottom:2px solid var(--ink);
+
   background:transparent;
 }
-input[type=text]::placeholder{color:var(--ink-faint);font-style:italic}
-input[type=text]:focus{border-bottom-color:var(--red)}
+
+input[type=text]::placeholder{
+  color:var(--ink-faint);
+  font-style:italic;
+}
+
+input[type=text]:focus{
+  border-bottom-color:var(--red);
+}
+
 input[type=number]{
   width:100px;
+
   font-size:19px;
+
   padding:8px 6px;
+
   border:1px solid var(--rule);
+
   background:var(--paper-card);
 }
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
 button.primary{
   font-family:'IBM Plex Mono',monospace;
+
   font-size:13px;
+
   letter-spacing:.06em;
+
   text-transform:uppercase;
+
   background:var(--ink);
+
   color:var(--paper-card);
+
   border:none;
+
   padding:13px 22px;
+
   border-radius:var(--radius);
+
   cursor:pointer;
+
   display:inline-flex;
+
   align-items:center;
+
   gap:10px;
-  transition:transform .1s,background .15s;
+
+  transition:
+    transform .1s,
+    background .15s;
 }
-button.primary:hover:not(:disabled){background:var(--red)}
-button.primary:active:not(:disabled){transform:translateY(1px)}
-button.primary:disabled{opacity:.45;cursor:not-allowed}
-button.primary:focus-visible,button.ghost:focus-visible{
+
+button.primary:hover:not(:disabled){
+  background:var(--red);
+}
+
+button.primary:active:not(:disabled){
+  transform:translateY(1px);
+}
+
+button.primary:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+button.primary:focus-visible,
+button.ghost:focus-visible{
   outline:2px solid var(--gold);
   outline-offset:2px;
 }
+
 button.ghost{
   font-family:'IBM Plex Mono',monospace;
+
   font-size:12.5px;
+
   letter-spacing:.05em;
+
   text-transform:uppercase;
+
   background:transparent;
+
   color:var(--ink-soft);
+
   border:1px solid var(--rule);
+
   padding:10px 16px;
+
   border-radius:var(--radius);
+
   cursor:pointer;
 }
-button.ghost:hover{border-color:var(--ink);color:var(--ink)}
+
+button.ghost:hover{
+  border-color:var(--ink);
+  color:var(--ink);
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
 .error-note{
   font-size:13px;
+
   color:var(--red);
+
   background:var(--red-soft);
+
   border-left:3px solid var(--red);
+
   padding:10px 12px;
+
   border-radius:2px;
+
   margin-top:14px;
+
   line-height:1.5;
 }
-.loading-block{text-align:center;padding:30px 10px}
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.loading-block{
+  text-align:center;
+  padding:30px 10px;
+}
+
 .loading-block .msg{
   font-family:'Newsreader',serif;
+
   font-style:italic;
+
   font-size:17px;
+
   color:var(--ink-soft);
+
   margin-top:14px;
 }
+
 .spinner{
-  width:34px;height:34px;margin:0 auto;
+  width:34px;
+  height:34px;
+
+  margin:0 auto;
+
   border-radius:50%;
+
   border:3px solid var(--rule);
+
   border-top-color:var(--red);
+
   animation:spin .9s linear infinite;
 }
-@keyframes spin{to{transform:rotate(360deg)}}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+/* =========================================================
+   PROGRESS
+========================================================= */
+
 .progress-row{
   display:flex;
+
   justify-content:space-between;
+
   align-items:baseline;
+
   margin-bottom:14px;
+
   font-family:'IBM Plex Mono',monospace;
 }
-.qcount,.score{
+
+.qcount,
+.score{
   font-size:12px;
+
   color:var(--ink-faint);
+
   letter-spacing:.05em;
 }
+
 .progress-track{
-  height:5px;width:100%;
-  background:repeating-linear-gradient(to right,var(--rule) 0 4px,transparent 4px 8px);
+  height:5px;
+
+  width:100%;
+
+  background:
+    repeating-linear-gradient(
+      to right,
+      var(--rule) 0 4px,
+      transparent 4px 8px
+    );
+
   border-radius:3px;
+
   margin-bottom:26px;
+
   overflow:hidden;
 }
+
 .progress-fill{
   height:100%;
+
   background:var(--ink);
+
   transition:width .3s ease;
 }
+
+/* =========================================================
+   QUESTION
+========================================================= */
+
 .question-text{
   font-family:'Newsreader',serif;
+
   font-size:22px;
+
   line-height:1.4;
+
   margin:0 0 22px;
+
   font-weight:500;
 }
-.options{display:flex;flex-direction:column;gap:10px}
+
+.options{
+  display:flex;
+
+  flex-direction:column;
+
+  gap:10px;
+}
+
 .option{
   width:100%;
+
   display:flex;
+
   align-items:flex-start;
+
   gap:12px;
+
   border:1.5px solid var(--rule);
+
   border-radius:var(--radius);
+
   padding:13px 14px;
+
   cursor:pointer;
+
   background:var(--paper-card);
-  transition:border-color .12s,background .12s;
+
+  transition:
+    border-color .12s,
+    background .12s;
+
   text-align:left;
 }
-.option:hover:not(.locked){border-color:var(--ink)}
+
+.option:hover:not(.locked){
+  border-color:var(--ink);
+}
+
 .option .key{
   font-family:'IBM Plex Mono',monospace;
+
   font-weight:600;
+
   font-size:13px;
-  width:22px;height:22px;
+
+  width:22px;
+  height:22px;
+
   border:1.5px solid var(--ink-faint);
+
   border-radius:50%;
+
   display:flex;
+
   align-items:center;
+
   justify-content:center;
+
   flex-shrink:0;
+
   color:var(--ink-soft);
 }
-.option .otext{font-size:15px;line-height:1.45;padding-top:1px}
-.option.correct{border-color:var(--green);background:#F2F7F2}
-.option.correct .key{background:var(--green);border-color:var(--green);color:#fff}
-.option.wrong{border-color:var(--red);background:#FAF1EF}
-.option.wrong .key{background:var(--red);border-color:var(--red);color:#fff}
-.option.locked{cursor:default}
-.option.dim{opacity:.55}
+
+.option .otext{
+  font-size:15px;
+
+  line-height:1.45;
+
+  padding-top:1px;
+}
+
+.option.correct{
+  border-color:var(--green);
+  background:#F2F7F2;
+}
+
+.option.correct .key{
+  background:var(--green);
+  border-color:var(--green);
+  color:#fff;
+}
+
+.option.wrong{
+  border-color:var(--red);
+  background:#FAF1EF;
+}
+
+.option.wrong .key{
+  background:var(--red);
+  border-color:var(--red);
+  color:#fff;
+}
+
+.option.locked{
+  cursor:default;
+}
+
+.option.dim{
+  opacity:.55;
+}
+
+/* =========================================================
+   STAMP
+========================================================= */
+
 .stamp{
   position:absolute;
-  top:18px;right:22px;
+
+  top:18px;
+  right:22px;
+
   font-family:'IBM Plex Mono',monospace;
+
   font-weight:700;
+
   font-size:12.5px;
+
   letter-spacing:.12em;
+
   text-transform:uppercase;
+
   padding:7px 12px;
+
   border:2px solid;
+
   border-radius:3px;
+
   transform:rotate(-7deg);
+
   animation:stampin .22s ease-out;
 }
-.stamp.correct{color:var(--green);border-color:var(--green)}
-.stamp.wrong{color:var(--red);border-color:var(--red)}
-@keyframes stampin{
-  from{transform:rotate(-7deg) scale(1.6);opacity:0}
-  to{transform:rotate(-7deg) scale(1);opacity:1}
+
+.stamp.correct{
+  color:var(--green);
+  border-color:var(--green);
 }
+
+.stamp.wrong{
+  color:var(--red);
+  border-color:var(--red);
+}
+
+@keyframes stampin{
+
+  from{
+    transform:rotate(-7deg) scale(1.6);
+    opacity:0;
+  }
+
+  to{
+    transform:rotate(-7deg) scale(1);
+    opacity:1;
+  }
+
+}
+
+/* =========================================================
+   EXPLANATION
+========================================================= */
+
 .explain{
   margin-top:20px;
+
   padding:14px 16px;
+
   border-left:3px solid var(--gold);
+
   background:#FBF6EA;
+
   border-radius:0 3px 3px 0;
 }
+
 .exlabel{
   font-family:'IBM Plex Mono',monospace;
+
   font-size:11px;
+
   letter-spacing:.1em;
+
   text-transform:uppercase;
+
   color:var(--gold);
+
   margin-bottom:6px;
 }
+
 .extext{
   font-family:'Newsreader',serif;
+
   font-style:italic;
+
   font-size:15.5px;
+
   line-height:1.5;
 }
+
+/* =========================================================
+   DOUBT BOX
+========================================================= */
+
 .doubt-box{
   margin-top:16px;
+
   padding:14px 16px 16px;
+
   border:1px solid var(--rule);
+
   border-radius:3px;
+
   background:var(--paper);
 }
+
 .doubt-thread{
   display:flex;
+
   flex-direction:column;
+
   gap:10px;
+
   margin-bottom:12px;
+
   max-height:300px;
+
   overflow-y:auto;
 }
-.doubt-thread:empty{margin-bottom:0}
+
+.doubt-thread:empty{
+  margin-bottom:0;
+}
+
 .doubt-msg{
   max-width:88%;
+
   padding:9px 12px;
+
   border-radius:6px;
+
   font-size:14px;
+
   line-height:1.45;
 }
+
 .doubt-msg.user{
   align-self:flex-end;
+
   background:var(--ink);
+
   color:var(--paper-card);
+
   border-bottom-right-radius:2px;
 }
+
 .doubt-msg.ai{
   align-self:flex-start;
+
   background:var(--paper-card);
+
   border:1px solid var(--rule);
+
   color:var(--ink);
+
   font-family:'Newsreader',serif;
+
   font-style:italic;
+
   border-bottom-left-radius:2px;
 }
+
 .ai-tag{
   display:block;
+
   font-family:'IBM Plex Mono',monospace;
+
   font-style:normal;
+
   font-size:10px;
+
   letter-spacing:.1em;
+
   text-transform:uppercase;
+
   color:var(--gold);
+
   margin-bottom:4px;
 }
-.doubt-input-row{display:flex;gap:8px}
+
+.doubt-input-row{
+  display:flex;
+
+  gap:8px;
+}
+
 .doubt-input-row input[type=text]{
   flex:1;
+
   font-family:'IBM Plex Sans',sans-serif;
+
   font-size:14px;
+
   border:1.5px solid var(--rule);
+
   border-radius:3px;
+
   padding:9px 11px;
+
   background:var(--paper-card);
 }
-.doubt-input-row input[type=text]:focus{border-color:var(--ink)}
-.doubt-input-row button{white-space:nowrap;padding:9px 14px;font-size:11.5px}
-.nav-row{display:flex;justify-content:flex-end;margin-top:24px}
-.result-stamp{text-align:center;padding:20px 10px 6px}
+
+.doubt-input-row input[type=text]:focus{
+  border-color:var(--ink);
+}
+
+.doubt-input-row button{
+  white-space:nowrap;
+
+  padding:9px 14px;
+
+  font-size:11.5px;
+}
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+.nav-row{
+  display:flex;
+
+  justify-content:space-between;
+
+  gap:10px;
+
+  flex-wrap:wrap;
+
+  margin-top:24px;
+}
+
+.nav-left,
+.nav-right{
+  display:flex;
+
+  gap:8px;
+
+  flex-wrap:wrap;
+}
+
+/* =========================================================
+   RESULTS
+========================================================= */
+
+.result-stamp{
+  text-align:center;
+
+  padding:20px 10px 6px;
+}
+
 .grade{
   font-family:'Newsreader',serif;
+
   font-weight:700;
+
   font-size:64px;
+
   line-height:1;
 }
-.grade.pass{color:var(--green)}
-.grade.fail{color:var(--red)}
+
+.grade.pass{
+  color:var(--green);
+}
+
+.grade.fail{
+  color:var(--red);
+}
+
 .score-line{
   font-family:'IBM Plex Mono',monospace;
+
   font-size:13px;
+
   color:var(--ink-soft);
+
   margin-top:8px;
 }
+
 .result-stats{
   display:flex;
+
   justify-content:center;
+
   gap:12px;
+
   margin:22px auto 8px;
+
   flex-wrap:wrap;
 }
+
 .result-stat{
   min-width:120px;
+
   padding:14px 18px;
+
   border:1px solid var(--rule);
+
   border-radius:4px;
+
   background:var(--paper);
 }
+
 .stat-number{
   font-family:'Newsreader',serif;
+
   font-size:30px;
+
   font-weight:700;
+
   line-height:1;
 }
+
 .stat-label{
   margin-top:6px;
+
   font-family:'IBM Plex Mono',monospace;
+
   font-size:10px;
+
   letter-spacing:.08em;
+
   color:var(--ink-faint);
 }
-.correct-stat{color:var(--green)}
-.wrong-stat{color:var(--red)}
-.accuracy-stat{color:var(--ink)}
 
-.review-item{border-top:1px solid var(--rule);padding:14px 0}
+.correct-stat{
+  color:var(--green);
+}
+
+.wrong-stat{
+  color:var(--red);
+}
+
+.accuracy-stat{
+  color:var(--ink);
+}
+
+/* =========================================================
+   REVIEW
+========================================================= */
+
+.review-item{
+  border-top:1px solid var(--rule);
+
+  padding:14px 0;
+}
+
 .review-item .rq{
   font-family:'Newsreader',serif;
+
   font-size:16px;
+
   line-height:1.4;
+
   margin-bottom:6px;
 }
+
 .review-item .ranswer{
   font-family:'IBM Plex Mono',monospace;
+
   font-size:12px;
+
   line-height:1.5;
+
   margin-bottom:4px;
 }
-.review-item .ranswer.wrong{color:var(--red)}
-.review-item .ranswer.correct{color:var(--green)}
-.review-item .rex{font-size:13.5px;color:var(--ink-soft);font-style:italic;line-height:1.5}
+
+.review-item .ranswer.wrong{
+  color:var(--red);
+}
+
+.review-item .ranswer.correct{
+  color:var(--green);
+}
+
+.review-item .rex{
+  font-size:13.5px;
+
+  color:var(--ink-soft);
+
+  font-style:italic;
+
+  line-height:1.5;
+}
+
 .btn-row{
   display:flex;
+
   gap:10px;
+
   justify-content:center;
+
   margin-top:24px;
+
   flex-wrap:wrap;
 }
-.hidden{display:none!important}
+
+.hidden{
+  display:none!important;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
 footer.note{
   text-align:center;
+
   font-size:11.5px;
+
   color:var(--ink-faint);
+
   margin-top:30px;
+
   font-family:'IBM Plex Mono',monospace;
 }
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
 @media(max-width:480px){
-  .card{padding:20px}
-  .question-text{font-size:19px}
-  .stamp{top:12px;right:14px;font-size:10.5px;padding:5px 9px}
-  .doubt-input-row{flex-direction:column}
+
+  .card{
+    padding:20px;
+  }
+
+  .question-text{
+    font-size:19px;
+  }
+
+  .stamp{
+    top:12px;
+
+    right:14px;
+
+    font-size:10.5px;
+
+    padding:5px 9px;
+  }
+
+  .doubt-input-row{
+    flex-direction:column;
+  }
+
+  .nav-row{
+    flex-direction:column;
+  }
+
+  .nav-left,
+  .nav-right{
+    width:100%;
+  }
+
+  .nav-left button,
+  .nav-right button{
+    flex:1;
+  }
+
 }
 </style>
 </head>
 
 <body>
+
 <div class="wrap">
 
+<!-- ======================================================
+     HEADER
+====================================================== -->
+
 <header class="hero">
-  <div class="eyebrow">Notes &rarr; Mock Paper</div>
-  <h1>Turn any PDF into<br><em>a mock exam.</em></h1>
-  <div class="sub">
-    Drop in a textbook chapter, notes, or reading, and it writes a fresh set
-    of MCQs — up to 30 — on what's actually in there. Answer them one at a
-    time, marked on the spot, like a teacher grading in red pen.
+
+  <div class="eyebrow">
+    Notes &rarr; Mock Paper
   </div>
+
+  <h1>
+    Turn any PDF into<br>
+    <em>a mock exam.</em>
+  </h1>
+
+  <div class="sub">
+
+    Drop in a textbook chapter, notes, or reading,
+    and it writes a fresh set of MCQs — up to
+    <strong>100 questions</strong> — on what's actually
+    in there. Answer them one at a time, marked on
+    the spot, like a teacher grading in red pen.
+
+  </div>
+
 </header>
 
+
+<!-- ======================================================
+     SETUP CARD
+====================================================== -->
+
 <div class="card" id="setupCard">
+
   <div class="card-inner">
 
+    <!-- PDF -->
+
     <div class="field-gap">
-      <label class="field-label">01 — Source PDF</label>
+
+      <label class="field-label">
+        01 — Source PDF
+      </label>
 
       <div class="dropzone" id="dropzone">
-        <div class="dz-title">Drop your PDF here, or click to browse</div>
-        <div class="dz-sub">A chapter, notes, article, or any reading material</div>
+
+        <div class="dz-title">
+          Drop your PDF here, or click to browse
+        </div>
+
+        <div class="dz-sub">
+          A chapter, notes, article, or any reading material
+        </div>
+
         <div class="dz-file" id="fileNameLabel"></div>
+
       </div>
 
-      <input type="file" id="fileInput" accept="application/pdf">
+      <input
+        type="file"
+        id="fileInput"
+        accept="application/pdf"
+      >
+
     </div>
 
+
+    <!-- QUESTION COUNT -->
+
     <div class="field-gap">
-      <label class="field-label">02 — Number of questions</label>
+
+      <label class="field-label">
+        02 — Number of questions
+      </label>
 
       <input
         type="number"
         id="countInput"
         min="1"
-        max="30"
-        value="15"
+        max="100"
+        value="40"
       >
 
-      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-faint);margin-left:8px">
-        max 30
+      <span style="
+        font-family:'IBM Plex Mono',monospace;
+        font-size:12px;
+        color:var(--ink-faint);
+        margin-left:8px;
+      ">
+        max 100
       </span>
+
     </div>
 
+
+    <!-- TOPIC -->
+
     <div class="field-gap">
-      <label class="field-label">03 — Focus topic (optional)</label>
+
+      <label class="field-label">
+        03 — Focus topic (optional)
+      </label>
 
       <input
         type="text"
         id="topicInput"
         placeholder="Leave blank to cover the whole document"
       >
+
     </div>
 
-    <button class="primary" id="extractBtn" disabled>
+
+    <button
+      class="primary"
+      id="extractBtn"
+      disabled
+    >
       Generate mock paper
     </button>
 
     <div id="setupError"></div>
 
   </div>
+
 </div>
 
-<div class="card hidden" id="loadingCard">
+
+<!-- ======================================================
+     LOADING
+====================================================== -->
+
+<div
+  class="card hidden"
+  id="loadingCard"
+>
+
   <div class="loading-block">
+
     <div class="spinner"></div>
-    <div class="msg" id="loadingMsg">Reading your PDF…</div>
+
+    <div
+      class="msg"
+      id="loadingMsg"
+    >
+      Reading your PDF…
+    </div>
+
   </div>
+
 </div>
 
-<div class="card hidden" id="quizCard">
+
+<!-- ======================================================
+     QUIZ
+====================================================== -->
+
+<div
+  class="card hidden"
+  id="quizCard"
+>
+
   <div class="card-inner">
 
     <div class="progress-row">
-      <span class="qcount" id="qcount">QUESTION 1 / 1</span>
-      <span class="score" id="scoreLabel">SCORE 0</span>
+
+      <span
+        class="qcount"
+        id="qcount"
+      >
+        QUESTION 1 / 1
+      </span>
+
+      <span
+        class="score"
+        id="scoreLabel"
+      >
+        SCORE 0
+      </span>
+
     </div>
 
+
     <div class="progress-track">
-      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+
+      <div
+        class="progress-fill"
+        id="progressFill"
+        style="width:0%"
+      ></div>
+
     </div>
+
 
     <div id="stampSlot"></div>
 
-    <div class="question-text" id="questionText"></div>
 
-    <div class="options" id="optionsList"></div>
+    <div
+      class="question-text"
+      id="questionText"
+    ></div>
 
-    <div class="explain hidden" id="explainBox">
-      <div class="exlabel">In the margin</div>
-      <div class="extext" id="explainText"></div>
+
+    <div
+      class="options"
+      id="optionsList"
+    ></div>
+
+
+    <!-- EXPLANATION -->
+
+    <div
+      class="explain hidden"
+      id="explainBox"
+    >
+
+      <div class="exlabel">
+        In the margin
+      </div>
+
+      <div
+        class="extext"
+        id="explainText"
+      ></div>
+
     </div>
 
-    <div class="doubt-box hidden" id="doubtBox">
-      <div class="exlabel">Have a doubt about this one?</div>
 
-      <div class="doubt-thread" id="doubtThread"></div>
+    <!-- DOUBT -->
+
+    <div
+      class="doubt-box hidden"
+      id="doubtBox"
+    >
+
+      <div class="exlabel">
+        Have a doubt about this one?
+      </div>
+
+      <div
+        class="doubt-thread"
+        id="doubtThread"
+      ></div>
 
       <div class="doubt-input-row">
+
         <input
           type="text"
           id="doubtInput"
           placeholder="Ask anything about this question…"
         >
-        <button class="ghost" id="doubtAskBtn">Ask</button>
+
+        <button
+          class="ghost"
+          id="doubtAskBtn"
+        >
+          Ask
+        </button>
+
       </div>
+
     </div>
 
-    <div class="nav-row" style="justify-content:space-between;gap:10px;flex-wrap:wrap;">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="ghost" id="homeBtn">Home</button>
-        <button class="ghost" id="newSetBtn">Generate new set</button>
+
+    <!-- NAVIGATION -->
+
+    <div class="nav-row">
+
+      <div class="nav-left">
+
+        <button
+          class="ghost"
+          id="homeBtn"
+        >
+          Home
+        </button>
+
+        <button
+          class="ghost"
+          id="newSetBtn"
+        >
+          Generate new set
+        </button>
+
       </div>
 
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="ghost" id="skipBtn">Skip</button>
-        <button class="primary hidden" id="nextBtn">Next question</button>
+
+      <div class="nav-right">
+
+        <button
+          class="ghost"
+          id="skipBtn"
+        >
+          Skip
+        </button>
+
+        <button
+          class="primary hidden"
+          id="nextBtn"
+        >
+          Next question
+        </button>
+
       </div>
+
     </div>
 
   </div>
+
 </div>
 
-<div class="card hidden" id="resultsCard">
+
+<!-- ======================================================
+     RESULTS
+====================================================== -->
+
+<div
+  class="card hidden"
+  id="resultsCard"
+>
+
   <div class="card-inner">
 
     <div class="result-stamp">
-      <div class="grade" id="gradeLetter">A</div>
-      <div class="score-line" id="scoreLine">7 / 10 CORRECT</div>
+
+      <div
+        class="grade"
+        id="gradeLetter"
+      >
+        A
+      </div>
+
+      <div
+        class="score-line"
+        id="scoreLine"
+      >
+        0 / 0 CORRECT
+      </div>
+
 
       <div class="result-stats">
-        <div class="result-stat">
-          <div class="stat-number correct-stat" id="correctCount">0</div>
-          <div class="stat-label">CORRECT</div>
-        </div>
-        <div class="result-stat">
-          <div class="stat-number wrong-stat" id="wrongCount">0</div>
-          <div class="stat-label">WRONG</div>
-        </div>
-        <div class="result-stat">
-          <div class="stat-number accuracy-stat" id="accuracyPercent">0%</div>
-          <div class="stat-label">ACCURACY</div>
-        </div>
 
         <div class="result-stat">
-          <div class="stat-number" id="skippedCount">0</div>
-          <div class="stat-label">SKIPPED</div>
+
+          <div
+            class="stat-number correct-stat"
+            id="correctCount"
+          >
+            0
+          </div>
+
+          <div class="stat-label">
+            CORRECT
+          </div>
+
         </div>
+
+
+        <div class="result-stat">
+
+          <div
+            class="stat-number wrong-stat"
+            id="wrongCount"
+          >
+            0
+          </div>
+
+          <div class="stat-label">
+            WRONG
+          </div>
+
+        </div>
+
+
+        <div class="result-stat">
+
+          <div
+            class="stat-number accuracy-stat"
+            id="accuracyPercent"
+          >
+            0%
+          </div>
+
+          <div class="stat-label">
+            ACCURACY
+          </div>
+
+        </div>
+
+
+        <div class="result-stat">
+
+          <div
+            class="stat-number"
+            id="skippedCount"
+          >
+            0
+          </div>
+
+          <div class="stat-label">
+            SKIPPED
+          </div>
+
+        </div>
+
       </div>
+
     </div>
 
+
     <div id="skippedQuestions"></div>
+
     <div id="reviewList"></div>
 
+
     <div class="btn-row">
-      <button class="primary" id="retakeBtn">Retake this set</button>
-      <button class="ghost" id="newTopicBtn">Try another topic</button>
-      <button class="ghost" id="resultsHomeBtn">Home</button>
+
+      <button
+        class="primary"
+        id="retakeBtn"
+      >
+        Retake this set
+      </button>
+
+      <button
+        class="ghost"
+        id="newTopicBtn"
+      >
+        Try another topic
+      </button>
+
+      <button
+        class="ghost"
+        id="resultsHomeBtn"
+      >
+        Home
+      </button>
+
     </div>
 
   </div>
+
 </div>
 
+
 <footer class="note">
-  Questions are freshly generated from your document — nothing is saved, and answers are marked instantly.
+
+  Questions are freshly generated from your document —
+  nothing is saved, and answers are marked instantly.
+
 </footer>
 
 </div>
 
+
 <script>
+
+/* =========================================================
+   PDF.JS
+========================================================= */
+
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-/* =========================
+
+/* =========================================================
    DOM
-========================= */
+========================================================= */
 
-const dropzone = document.getElementById("dropzone");
-const fileInput = document.getElementById("fileInput");
-const fileNameLabel = document.getElementById("fileNameLabel");
+const dropzone =
+  document.getElementById("dropzone");
 
-const topicInput = document.getElementById("topicInput");
-const countInput = document.getElementById("countInput");
-const extractBtn = document.getElementById("extractBtn");
+const fileInput =
+  document.getElementById("fileInput");
 
-const setupCard = document.getElementById("setupCard");
-const setupError = document.getElementById("setupError");
+const fileNameLabel =
+  document.getElementById("fileNameLabel");
 
-const loadingCard = document.getElementById("loadingCard");
-const loadingMsg = document.getElementById("loadingMsg");
+const topicInput =
+  document.getElementById("topicInput");
 
-const quizCard = document.getElementById("quizCard");
-const resultsCard = document.getElementById("resultsCard");
+const countInput =
+  document.getElementById("countInput");
 
-const qcount = document.getElementById("qcount");
-const scoreLabel = document.getElementById("scoreLabel");
-const progressFill = document.getElementById("progressFill");
+const extractBtn =
+  document.getElementById("extractBtn");
 
-const stampSlot = document.getElementById("stampSlot");
-const questionText = document.getElementById("questionText");
-const optionsList = document.getElementById("optionsList");
+const setupCard =
+  document.getElementById("setupCard");
 
-const explainBox = document.getElementById("explainBox");
-const explainText = document.getElementById("explainText");
+const setupError =
+  document.getElementById("setupError");
 
-const doubtBox = document.getElementById("doubtBox");
-const doubtThread = document.getElementById("doubtThread");
-const doubtInput = document.getElementById("doubtInput");
-const doubtAskBtn = document.getElementById("doubtAskBtn");
+const loadingCard =
+  document.getElementById("loadingCard");
 
-const nextBtn = document.getElementById("nextBtn");
-const skipBtn = document.getElementById("skipBtn");
-const newSetBtn = document.getElementById("newSetBtn");
-const homeBtn = document.getElementById("homeBtn");
-const resultsHomeBtn = document.getElementById("resultsHomeBtn");
+const loadingMsg =
+  document.getElementById("loadingMsg");
 
-const gradeLetter = document.getElementById("gradeLetter");
-const scoreLine = document.getElementById("scoreLine");
-const correctCount = document.getElementById("correctCount");
-const wrongCount = document.getElementById("wrongCount");
-const accuracyPercent = document.getElementById("accuracyPercent");
-const skippedCount = document.getElementById("skippedCount");
-const skippedQuestions = document.getElementById("skippedQuestions");
-const reviewList = document.getElementById("reviewList");
+const quizCard =
+  document.getElementById("quizCard");
 
-const retakeBtn = document.getElementById("retakeBtn");
-const newTopicBtn = document.getElementById("newTopicBtn");
+const resultsCard =
+  document.getElementById("resultsCard");
 
-/* =========================
-   State
-========================= */
+const qcount =
+  document.getElementById("qcount");
+
+const scoreLabel =
+  document.getElementById("scoreLabel");
+
+const progressFill =
+  document.getElementById("progressFill");
+
+const stampSlot =
+  document.getElementById("stampSlot");
+
+const questionText =
+  document.getElementById("questionText");
+
+const optionsList =
+  document.getElementById("optionsList");
+
+const explainBox =
+  document.getElementById("explainBox");
+
+const explainText =
+  document.getElementById("explainText");
+
+const doubtBox =
+  document.getElementById("doubtBox");
+
+const doubtThread =
+  document.getElementById("doubtThread");
+
+const doubtInput =
+  document.getElementById("doubtInput");
+
+const doubtAskBtn =
+  document.getElementById("doubtAskBtn");
+
+const nextBtn =
+  document.getElementById("nextBtn");
+
+const skipBtn =
+  document.getElementById("skipBtn");
+
+const newSetBtn =
+  document.getElementById("newSetBtn");
+
+const homeBtn =
+  document.getElementById("homeBtn");
+
+const resultsHomeBtn =
+  document.getElementById("resultsHomeBtn");
+
+const gradeLetter =
+  document.getElementById("gradeLetter");
+
+const scoreLine =
+  document.getElementById("scoreLine");
+
+const correctCount =
+  document.getElementById("correctCount");
+
+const wrongCount =
+  document.getElementById("wrongCount");
+
+const accuracyPercent =
+  document.getElementById("accuracyPercent");
+
+const skippedCount =
+  document.getElementById("skippedCount");
+
+const skippedQuestions =
+  document.getElementById("skippedQuestions");
+
+const reviewList =
+  document.getElementById("reviewList");
+
+const retakeBtn =
+  document.getElementById("retakeBtn");
+
+const newTopicBtn =
+  document.getElementById("newTopicBtn");
+
+
+/* =========================================================
+   STATE
+========================================================= */
 
 let pdfText = "";
+
 let questions = [];
+
 let currentIndex = 0;
+
 let score = 0;
+
 let userAnswers = [];
+
 let skippedQuestionsList = [];
+
 let doubtMessages = [];
 
-/* =========================
-   PDF upload
-========================= */
 
-dropzone.addEventListener("click", () => {
-  fileInput.click();
-});
+/* =========================================================
+   API
+========================================================= */
 
-dropzone.addEventListener("dragover", (e) => {
-  e.preventDefault();
-  dropzone.classList.add("drag");
-});
+const API_BASE = "";
 
-dropzone.addEventListener("dragleave", () => {
-  dropzone.classList.remove("drag");
-});
 
-dropzone.addEventListener("drop", (e) => {
-  e.preventDefault();
-  dropzone.classList.remove("drag");
+/* =========================================================
+   PDF UPLOAD
+========================================================= */
 
-  if (e.dataTransfer.files.length) {
-    handleFile(e.dataTransfer.files[0]);
+dropzone.addEventListener(
+  "click",
+  () => fileInput.click()
+);
+
+dropzone.addEventListener(
+  "dragover",
+  event => {
+
+    event.preventDefault();
+
+    dropzone.classList.add("drag");
+
   }
-});
+);
 
-fileInput.addEventListener("change", () => {
-  if (fileInput.files.length) {
-    handleFile(fileInput.files[0]);
+dropzone.addEventListener(
+  "dragleave",
+  () => {
+
+    dropzone.classList.remove("drag");
+
   }
-});
+);
 
-countInput.addEventListener("input", updateExtractButton);
-topicInput.addEventListener("input", updateExtractButton);
+dropzone.addEventListener(
+  "drop",
+  event => {
 
-function updateExtractButton() {
+    event.preventDefault();
 
-  const count = parseInt(countInput.value, 10);
+    dropzone.classList.remove("drag");
+
+    if (
+      event.dataTransfer.files.length
+    ) {
+
+      handleFile(
+        event.dataTransfer.files[0]
+      );
+
+    }
+
+  }
+);
+
+fileInput.addEventListener(
+  "change",
+  () => {
+
+    if (fileInput.files.length) {
+
+      handleFile(
+        fileInput.files[0]
+      );
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   QUESTION COUNT VALIDATION
+========================================================= */
+
+countInput.addEventListener(
+  "input",
+  updateExtractButton
+);
+
+topicInput.addEventListener(
+  "input",
+  updateExtractButton
+);
+
+function updateExtractButton(){
+
+  const count =
+    parseInt(
+      countInput.value,
+      10
+    );
 
   extractBtn.disabled = !(
     pdfText.trim().length > 0 &&
     count >= 1 &&
-    count <= 30
+    count <= 100
   );
 }
 
-async function handleFile(file) {
+
+/* =========================================================
+   HANDLE PDF
+========================================================= */
+
+async function handleFile(file){
 
   setupError.innerHTML = "";
 
-  if (!file || file.type !== "application/pdf") {
+  if (
+    !file ||
+    file.type !== "application/pdf"
+  ){
 
     fileNameLabel.textContent = "";
 
     setupError.innerHTML =
-      '<div class="error-note">That doesn’t look like a PDF. Please upload a .pdf file.</div>';
+      '<div class="error-note">' +
+      "That doesn’t look like a PDF. " +
+      "Please upload a .pdf file." +
+      "</div>";
 
     return;
   }
 
   fileNameLabel.textContent =
-    "Reading " + file.name + " …";
+    "Reading " +
+    file.name +
+    " …";
 
-  try {
+  try{
 
-    const buffer = await file.arrayBuffer();
+    const buffer =
+      await file.arrayBuffer();
 
-    const pdf = await pdfjsLib
-      .getDocument({ data: buffer })
-      .promise;
+    const pdf =
+      await pdfjsLib
+        .getDocument({
+          data:buffer
+        })
+        .promise;
 
     let text = "";
 
-    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+    for(
+      let pageNumber = 1;
+      pageNumber <= pdf.numPages;
+      pageNumber++
+    ){
 
-      const page = await pdf.getPage(pageNumber);
+      const page =
+        await pdf.getPage(
+          pageNumber
+        );
 
-      const content = await page.getTextContent();
+      const content =
+        await page.getTextContent();
 
-      const pageText = content.items
-        .map(item => item.str)
-        .join(" ");
+      const pageText =
+        content.items
+          .map(
+            item => item.str
+          )
+          .join(" ");
 
       text +=
         "\n\n--- page " +
@@ -794,15 +1857,22 @@ async function handleFile(file) {
 
     pdfText = text;
 
-    if (pdfText.trim().length < 20) {
+    if(
+      pdfText.trim().length < 20
+    ){
 
-      setupError.innerHTML =
-        '<div class="error-note">Couldn’t find readable text in this PDF. It may be a scanned image. Try a text-based PDF.</div>';
-
-      fileNameLabel.textContent = "";
       pdfText = "";
 
-    } else {
+      fileNameLabel.textContent = "";
+
+      setupError.innerHTML =
+        '<div class="error-note">' +
+        "Couldn’t find readable text in this PDF. " +
+        "It may be a scanned image. " +
+        "Try a text-based PDF." +
+        "</div>";
+
+    }else{
 
       fileNameLabel.textContent =
         "✓ " +
@@ -810,457 +1880,817 @@ async function handleFile(file) {
         " (" +
         pdf.numPages +
         " page" +
-        (pdf.numPages > 1 ? "s" : "") +
+        (
+          pdf.numPages > 1
+            ? "s"
+            : ""
+        ) +
         " read)";
+
     }
 
-  } catch (error) {
+  }catch(error){
 
     console.error(error);
 
     pdfText = "";
 
-    setupError.innerHTML =
-      '<div class="error-note">Couldn’t read that PDF. Please try a different file.</div>';
-
     fileNameLabel.textContent = "";
+
+    setupError.innerHTML =
+      '<div class="error-note">' +
+      "Couldn’t read that PDF. " +
+      "Please try a different file." +
+      "</div>";
+
   }
 
   updateExtractButton();
 }
 
-/* =========================
-   Backend helpers
-========================= */
 
-const API_BASE = "";
+/* =========================================================
+   BACKEND RESPONSE
+========================================================= */
 
-async function parseBackendResponse(response) {
+async function parseBackendResponse(
+  response
+){
 
   let data;
 
-  try {
-    data = await response.json();
-  } catch {
+  try{
+
+    data =
+      await response.json();
+
+  }catch{
+
     throw new Error(
       "The backend returned an invalid response."
     );
+
   }
 
-  if (!response.ok) {
+  if(!response.ok){
 
     throw new Error(
       data.detail ||
       "The server could not complete the request."
     );
+
   }
 
   return data;
 }
 
-/* =========================
-   Generate questions
-========================= */
+
+/* =========================================================
+   GENERATE QUESTIONS
+========================================================= */
 
 extractBtn.addEventListener(
   "click",
   extractQuestions
 );
 
-async function extractQuestions() {
+async function extractQuestions(){
 
-  const topic = topicInput.value.trim();
+  const topic =
+    topicInput.value.trim();
 
-  const desiredCount = Math.min(
-    30,
-    Math.max(
-      1,
-      parseInt(countInput.value, 10) || 15
-    )
-  );
+  /*
+   * DEFAULT = 40
+   * MAXIMUM = 100
+   */
+
+  const desiredCount =
+    Math.min(
+      100,
+      Math.max(
+        1,
+        parseInt(
+          countInput.value,
+          10
+        ) || 40
+      )
+    );
 
   setupError.innerHTML = "";
 
-  setupCard.classList.add("hidden");
-  loadingCard.classList.remove("hidden");
+  setupCard.classList.add(
+    "hidden"
+  );
+
+  loadingCard.classList.remove(
+    "hidden"
+  );
 
   loadingMsg.textContent =
     "Sending your PDF content to the question generator…";
 
-  try {
+  try{
 
-    const response = await fetch(
-      `${API_BASE}/api/generate`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          text: pdfText,
-          count: desiredCount,
-          topic: topic
-        })
-      }
-    );
+    const response =
+      await fetch(
+        `${API_BASE}/api/generate`,
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+
+          body:JSON.stringify({
+
+            text:pdfText,
+
+            count:desiredCount,
+
+            topic:topic
+
+          })
+        }
+      );
 
     loadingMsg.textContent =
       "Building your mock paper…";
 
     const data =
-      await parseBackendResponse(response);
+      await parseBackendResponse(
+        response
+      );
 
-    questions = Array.isArray(data.questions)
-      ? data.questions
-      : [];
+    questions =
+      Array.isArray(
+        data.questions
+      )
+        ? data.questions
+        : [];
 
-    if (!questions.length) {
+    if(
+      !questions.length
+    ){
+
       throw new Error(
         "No questions could be generated from this document."
       );
+
     }
 
-    loadingCard.classList.add("hidden");
+    loadingCard.classList.add(
+      "hidden"
+    );
 
     startQuiz();
 
-  } catch (error) {
+  }catch(error){
 
     console.error(error);
 
-    loadingCard.classList.add("hidden");
-    setupCard.classList.remove("hidden");
+    loadingCard.classList.add(
+      "hidden"
+    );
+
+    setupCard.classList.remove(
+      "hidden"
+    );
 
     setupError.innerHTML =
       `<div class="error-note">${escapeHtml(
         error.message ||
         "Something went wrong while generating questions."
       )}</div>`;
+
   }
 }
 
-/* =========================
-   Generate another set without finishing
-========================= */
 
-newSetBtn.addEventListener("click", async () => {
+/* =========================================================
+   GENERATE NEW SET
+========================================================= */
 
-  if (!pdfText.trim()) {
-    setupCard.classList.remove("hidden");
-    quizCard.classList.add("hidden");
+newSetBtn.addEventListener(
+  "click",
+  generateNewSet
+);
+
+async function generateNewSet(){
+
+  if(!pdfText.trim()){
+
+    goHome();
+
     setupError.innerHTML =
-      '<div class="error-note">Please upload a PDF first.</div>';
-    updateExtractButton();
+      '<div class="error-note">' +
+      "Please upload a PDF first." +
+      "</div>";
+
     return;
   }
 
-  const topic = topicInput.value.trim();
+  const topic =
+    topicInput.value.trim();
 
-  const desiredCount = Math.min(
-    30,
-    Math.max(1, parseInt(countInput.value, 10) || 15)
+  const desiredCount =
+    Math.min(
+      100,
+      Math.max(
+        1,
+        parseInt(
+          countInput.value,
+          10
+        ) || 40
+      )
+    );
+
+  quizCard.classList.add(
+    "hidden"
   );
 
-  quizCard.classList.add("hidden");
-  resultsCard.classList.add("hidden");
-  loadingCard.classList.remove("hidden");
+  resultsCard.classList.add(
+    "hidden"
+  );
 
-  loadingMsg.textContent = "Generating a fresh set of questions…";
+  loadingCard.classList.remove(
+    "hidden"
+  );
 
-  try {
-    const response = await fetch(`${API_BASE}/api/generate`, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        text: pdfText,
-        count: desiredCount,
-        topic: topic
-      })
-    });
+  loadingMsg.textContent =
+    "Generating a fresh set of questions…";
 
-    const data = await parseBackendResponse(response);
+  try{
 
-    questions = Array.isArray(data.questions) ? data.questions : [];
+    const response =
+      await fetch(
+        `${API_BASE}/api/generate`,
+        {
+          method:"POST",
 
-    if (!questions.length) {
-      throw new Error("No questions could be generated from this document.");
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+
+          body:JSON.stringify({
+
+            text:pdfText,
+
+            count:desiredCount,
+
+            topic:topic
+
+          })
+        }
+      );
+
+    const data =
+      await parseBackendResponse(
+        response
+      );
+
+    questions =
+      Array.isArray(
+        data.questions
+      )
+        ? data.questions
+        : [];
+
+    if(
+      !questions.length
+    ){
+
+      throw new Error(
+        "No questions could be generated from this document."
+      );
+
     }
 
-    loadingCard.classList.add("hidden");
+    loadingCard.classList.add(
+      "hidden"
+    );
+
     startQuiz();
 
-  } catch (error) {
+  }catch(error){
+
     console.error(error);
 
-    loadingCard.classList.add("hidden");
-    quizCard.classList.remove("hidden");
+    loadingCard.classList.add(
+      "hidden"
+    );
 
-    const msg = document.createElement("div");
-    msg.className = "error-note";
-    msg.textContent =
-      error.message || "Something went wrong while generating questions.";
+    quizCard.classList.remove(
+      "hidden"
+    );
 
-    setupError.innerHTML = "";
-    setupError.appendChild(msg);
+    setupError.innerHTML =
+      `<div class="error-note">${escapeHtml(
+        error.message ||
+        "Something went wrong while generating questions."
+      )}</div>`;
+
   }
-});
+}
 
-/* =========================
-   Home / navigation
-========================= */
 
-function goHome() {
-  quizCard.classList.add("hidden");
-  resultsCard.classList.add("hidden");
-  loadingCard.classList.add("hidden");
-  setupCard.classList.remove("hidden");
+/* =========================================================
+   HOME
+========================================================= */
+
+homeBtn.addEventListener(
+  "click",
+  goHome
+);
+
+resultsHomeBtn.addEventListener(
+  "click",
+  goHome
+);
+
+function goHome(){
+
+  quizCard.classList.add(
+    "hidden"
+  );
+
+  resultsCard.classList.add(
+    "hidden"
+  );
+
+  loadingCard.classList.add(
+    "hidden"
+  );
+
+  setupCard.classList.remove(
+    "hidden"
+  );
 
   setupError.innerHTML = "";
 
   updateExtractButton();
 
   window.scrollTo({
-    top: 0,
-    behavior: "smooth"
+    top:0,
+    behavior:"smooth"
   });
 }
 
-homeBtn.addEventListener("click", goHome);
-resultsHomeBtn.addEventListener("click", goHome);
 
-/* =========================
-   Quiz
-========================= */
+/* =========================================================
+   START QUIZ
+========================================================= */
 
-function startQuiz() {
+function startQuiz(){
 
   currentIndex = 0;
+
   score = 0;
+
   userAnswers = [];
+
   skippedQuestionsList = [];
 
-  resultsCard.classList.add("hidden");
-  setupCard.classList.add("hidden");
-  quizCard.classList.remove("hidden");
+  resultsCard.classList.add(
+    "hidden"
+  );
+
+  setupCard.classList.add(
+    "hidden"
+  );
+
+  quizCard.classList.remove(
+    "hidden"
+  );
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
 
   renderQuestion();
 }
 
-function renderQuestion() {
 
-  const q = questions[currentIndex];
+/* =========================================================
+   RENDER QUESTION
+========================================================= */
+
+function renderQuestion(){
+
+  const q =
+    questions[currentIndex];
+
+  if(!q) return;
 
   stampSlot.innerHTML = "";
 
-  explainBox.classList.add("hidden");
-  doubtBox.classList.add("hidden");
-  nextBtn.classList.add("hidden");
-  skipBtn.classList.remove("hidden");
+  explainBox.classList.add(
+    "hidden"
+  );
+
+  doubtBox.classList.add(
+    "hidden"
+  );
+
+  nextBtn.classList.add(
+    "hidden"
+  );
+
+  skipBtn.classList.remove(
+    "hidden"
+  );
+
   skipBtn.disabled = false;
 
   doubtThread.innerHTML = "";
+
   doubtInput.value = "";
+
   doubtMessages = [];
 
   qcount.textContent =
-    `QUESTION ${currentIndex + 1} / ${questions.length}`;
+    `QUESTION ${
+      currentIndex + 1
+    } / ${
+      questions.length
+    }`;
 
   scoreLabel.textContent =
     `SCORE ${score}`;
 
   progressFill.style.width =
-    `${(currentIndex / questions.length) * 100}%`;
+    `${
+      (currentIndex /
+      questions.length) *
+      100
+    }%`;
 
   questionText.textContent =
     q.question;
 
   optionsList.innerHTML = "";
 
-  ["A", "B", "C", "D"].forEach(key => {
+  [
+    "A",
+    "B",
+    "C",
+    "D"
+  ].forEach(
+    key => {
 
-    if (!q.options || !q.options[key]) {
-      return;
+      if(
+        !q.options ||
+        !q.options[key]
+      ){
+
+        return;
+
+      }
+
+      const option =
+        document.createElement(
+          "button"
+        );
+
+      option.type =
+        "button";
+
+      option.className =
+        "option";
+
+      const keySpan =
+        document.createElement(
+          "span"
+        );
+
+      keySpan.className =
+        "key";
+
+      keySpan.textContent =
+        key;
+
+      const textSpan =
+        document.createElement(
+          "span"
+        );
+
+      textSpan.className =
+        "otext";
+
+      textSpan.textContent =
+        q.options[key];
+
+      option.appendChild(
+        keySpan
+      );
+
+      option.appendChild(
+        textSpan
+      );
+
+      option.addEventListener(
+        "click",
+        () => selectAnswer(key)
+      );
+
+      optionsList.appendChild(
+        option
+      );
+
     }
-
-    const option = document.createElement("button");
-
-    option.type = "button";
-    option.className = "option";
-
-    const keySpan =
-      document.createElement("span");
-
-    keySpan.className = "key";
-    keySpan.textContent = key;
-
-    const textSpan =
-      document.createElement("span");
-
-    textSpan.className = "otext";
-    textSpan.textContent = q.options[key];
-
-    option.appendChild(keySpan);
-    option.appendChild(textSpan);
-
-    option.addEventListener(
-      "click",
-      () => selectAnswer(key)
-    );
-
-    optionsList.appendChild(option);
-  });
+  );
 }
 
-function selectAnswer(selectedKey) {
 
-  const q = questions[currentIndex];
+/* =========================================================
+   ANSWER
+========================================================= */
 
-  if (!q || !q.correctAnswer) {
+function selectAnswer(
+  selectedKey
+){
+
+  const q =
+    questions[currentIndex];
+
+  if(
+    !q ||
+    !q.correctAnswer
+  ){
+
     return;
+
   }
 
   const optionElements =
-    Array.from(optionsList.children);
+    Array.from(
+      optionsList.children
+    );
 
   const isCorrect =
-    selectedKey === q.correctAnswer;
+    selectedKey ===
+    q.correctAnswer;
 
-  optionElements.forEach(option => {
+  optionElements.forEach(
+    option => {
 
-    option.classList.add("locked");
-    option.disabled = true;
+      option.classList.add(
+        "locked"
+      );
 
-    const key =
-      option.querySelector(".key").textContent;
+      option.disabled = true;
 
-    if (key === q.correctAnswer) {
+      const key =
+        option
+          .querySelector(".key")
+          .textContent;
 
-      option.classList.add("correct");
+      if(
+        key ===
+        q.correctAnswer
+      ){
 
-    } else if (key === selectedKey) {
+        option.classList.add(
+          "correct"
+        );
 
-      option.classList.add("wrong");
+      }else if(
+        key ===
+        selectedKey
+      ){
 
-    } else {
+        option.classList.add(
+          "wrong"
+        );
 
-      option.classList.add("dim");
+      }else{
+
+        option.classList.add(
+          "dim"
+        );
+
+      }
+
     }
-  });
+  );
 
   const stamp =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   stamp.className =
     "stamp " +
-    (isCorrect ? "correct" : "wrong");
+    (
+      isCorrect
+        ? "correct"
+        : "wrong"
+    );
 
   stamp.textContent =
-    isCorrect ? "✓ Correct" : "✗ Wrong";
+    isCorrect
+      ? "✓ Correct"
+      : "✗ Wrong";
 
-  stampSlot.appendChild(stamp);
+  stampSlot.appendChild(
+    stamp
+  );
 
   explainText.textContent =
     q.explanation ||
     "No explanation was provided.";
 
-  explainBox.classList.remove("hidden");
-  doubtBox.classList.remove("hidden");
+  explainBox.classList.remove(
+    "hidden"
+  );
 
-  if (isCorrect) {
+  doubtBox.classList.remove(
+    "hidden"
+  );
+
+  if(isCorrect){
+
     score++;
+
   }
 
   scoreLabel.textContent =
     `SCORE ${score}`;
 
   userAnswers.push({
-    originalNumber: currentIndex + 1,
-    question: q.question,
-    selected: selectedKey,
-    correct: q.correctAnswer,
-    isCorrect: isCorrect,
-    explanation: q.explanation || "",
-    options: q.options
+
+    originalNumber:
+      currentIndex + 1,
+
+    question:
+      q.question,
+
+    selected:
+      selectedKey,
+
+    correct:
+      q.correctAnswer,
+
+    isCorrect:
+      isCorrect,
+
+    explanation:
+      q.explanation || "",
+
+    options:
+      q.options
+
   });
 
   progressFill.style.width =
-    `${((currentIndex + 1) / questions.length) * 100}%`;
+    `${
+      (
+        (currentIndex + 1) /
+        questions.length
+      ) * 100
+    }%`;
 
   nextBtn.textContent =
-    currentIndex === questions.length - 1
+    currentIndex ===
+    questions.length - 1
+
       ? "See results"
+
       : "Next question";
 
-  nextBtn.classList.remove("hidden");
-  skipBtn.classList.add("hidden");
+  nextBtn.classList.remove(
+    "hidden"
+  );
+
+  skipBtn.classList.add(
+    "hidden"
+  );
 }
 
-skipBtn.addEventListener("click", () => {
 
-  const q = questions[currentIndex];
+/* =========================================================
+   SKIP
+========================================================= */
 
-  if (!q) return;
+skipBtn.addEventListener(
+  "click",
+  skipQuestion
+);
+
+function skipQuestion(){
+
+  const q =
+    questions[currentIndex];
+
+  if(!q) return;
 
   skippedQuestionsList.push({
-    number: currentIndex + 1,
-    question: q.question
+
+    number:
+      currentIndex + 1,
+
+    question:
+      q.question
+
   });
 
-  skipBtn.disabled = true;
-
   currentIndex++;
 
-  if (currentIndex >= questions.length) {
+  if(
+    currentIndex >=
+    questions.length
+  ){
+
     showResults();
-  } else {
+
+  }else{
+
     renderQuestion();
+
   }
-});
+}
 
-nextBtn.addEventListener("click", () => {
 
-  currentIndex++;
+/* =========================================================
+   NEXT
+========================================================= */
 
-  if (currentIndex >= questions.length) {
-    showResults();
-  } else {
-    renderQuestion();
+nextBtn.addEventListener(
+  "click",
+  () => {
+
+    currentIndex++;
+
+    if(
+      currentIndex >=
+      questions.length
+    ){
+
+      showResults();
+
+    }else{
+
+      renderQuestion();
+
+    }
+
   }
-});
+);
 
-/* =========================
-   Doubt / AI tutor
-========================= */
 
-function appendDoubtMessage(role, text) {
+/* =========================================================
+   DOUBT
+========================================================= */
+
+function appendDoubtMessage(
+  role,
+  text
+){
 
   const div =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   div.className =
-    "doubt-msg " + role;
+    "doubt-msg " +
+    role;
 
-  if (role === "ai") {
+  if(role === "ai"){
 
     const tag =
-      document.createElement("span");
+      document.createElement(
+        "span"
+      );
 
-    tag.className = "ai-tag";
-    tag.textContent = "AI";
+    tag.className =
+      "ai-tag";
 
-    div.appendChild(tag);
+    tag.textContent =
+      "AI";
 
-    const content =
-      document.createTextNode(text);
+    div.appendChild(
+      tag
+    );
 
-    div.appendChild(content);
+    div.appendChild(
+      document.createTextNode(
+        text
+      )
+    );
 
-  } else {
+  }else{
 
-    div.textContent = text;
+    div.textContent =
+      text;
+
   }
 
-  doubtThread.appendChild(div);
+  doubtThread.appendChild(
+    div
+  );
 
   doubtThread.scrollTop =
     doubtThread.scrollHeight;
@@ -1268,112 +2698,6 @@ function appendDoubtMessage(role, text) {
   return div;
 }
 
-async function askDoubt() {
-
-  const text =
-    doubtInput.value.trim();
-
-  if (!text) return;
-
-  const q =
-    questions[currentIndex];
-
-  const a =
-    userAnswers[userAnswers.length - 1];
-
-  doubtInput.value = "";
-  doubtInput.disabled = true;
-  doubtAskBtn.disabled = true;
-
-  appendDoubtMessage("user", text);
-
-  const loadingElement =
-    appendDoubtMessage(
-      "ai",
-      "Thinking…"
-    );
-
-  loadingElement.classList.add("loading");
-
-  try {
-
-    const response = await fetch(
-      `${API_BASE}/api/doubt`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          question: q.question,
-          options: q.options,
-          correctAnswer: q.correctAnswer,
-          studentAnswer: a ? a.selected : "",
-          explanation: q.explanation || "",
-          doubt: text,
-          history: doubtMessages
-        })
-      }
-    );
-
-    const data =
-      await parseBackendResponse(response);
-
-    const reply =
-      (data.answer || "").trim() ||
-      "I couldn’t generate an answer. Please try rephrasing your doubt.";
-
-    doubtMessages.push({
-      role: "user",
-      content: text
-    });
-
-    doubtMessages.push({
-      role: "assistant",
-      content: reply
-    });
-
-    loadingElement.classList.remove("loading");
-    loadingElement.innerHTML = "";
-
-    const tag =
-      document.createElement("span");
-
-    tag.className = "ai-tag";
-    tag.textContent = "AI";
-
-    loadingElement.appendChild(tag);
-    loadingElement.appendChild(
-      document.createTextNode(reply)
-    );
-
-  } catch (error) {
-
-    console.error(error);
-
-    loadingElement.classList.remove("loading");
-    loadingElement.innerHTML = "";
-
-    const tag =
-      document.createElement("span");
-
-    tag.className = "ai-tag";
-    tag.textContent = "AI";
-
-    loadingElement.appendChild(tag);
-
-    loadingElement.appendChild(
-      document.createTextNode(
-        error.message ||
-        "Something went wrong while answering the doubt."
-      )
-    );
-  }
-
-  doubtInput.disabled = false;
-  doubtAskBtn.disabled = false;
-  doubtInput.focus();
-}
 
 doubtAskBtn.addEventListener(
   "click",
@@ -1384,181 +2708,603 @@ doubtInput.addEventListener(
   "keydown",
   event => {
 
-    if (event.key === "Enter") {
+    if(
+      event.key ===
+      "Enter"
+    ){
 
       event.preventDefault();
 
       askDoubt();
+
     }
+
   }
 );
 
-/* =========================
-   Results
-========================= */
 
-function computeGrade(percent) {
+async function askDoubt(){
 
-  if (percent >= 90) return "A";
-  if (percent >= 80) return "B";
-  if (percent >= 70) return "C";
-  if (percent >= 60) return "D";
+  const text =
+    doubtInput.value.trim();
+
+  if(!text) return;
+
+  const q =
+    questions[currentIndex];
+
+  const a =
+    userAnswers[
+      userAnswers.length - 1
+    ];
+
+  doubtInput.value = "";
+
+  doubtInput.disabled =
+    true;
+
+  doubtAskBtn.disabled =
+    true;
+
+  appendDoubtMessage(
+    "user",
+    text
+  );
+
+  const loadingElement =
+    appendDoubtMessage(
+      "ai",
+      "Thinking…"
+    );
+
+  try{
+
+    const response =
+      await fetch(
+        `${API_BASE}/api/doubt`,
+        {
+
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+
+          body:JSON.stringify({
+
+            question:
+              q.question,
+
+            options:
+              q.options,
+
+            correctAnswer:
+              q.correctAnswer,
+
+            studentAnswer:
+              a
+                ? a.selected
+                : "",
+
+            explanation:
+              q.explanation || "",
+
+            doubt:
+              text,
+
+            history:
+              doubtMessages
+
+          })
+
+        }
+      );
+
+    const data =
+      await parseBackendResponse(
+        response
+      );
+
+    const reply =
+      (
+        data.answer ||
+        ""
+      ).trim() ||
+
+      "I couldn’t generate an answer. Please try rephrasing your doubt.";
+
+    doubtMessages.push({
+
+      role:"user",
+
+      content:text
+
+    });
+
+    doubtMessages.push({
+
+      role:"assistant",
+
+      content:reply
+
+    });
+
+    loadingElement.innerHTML = "";
+
+    const tag =
+      document.createElement(
+        "span"
+      );
+
+    tag.className =
+      "ai-tag";
+
+    tag.textContent =
+      "AI";
+
+    loadingElement.appendChild(
+      tag
+    );
+
+    loadingElement.appendChild(
+      document.createTextNode(
+        reply
+      )
+    );
+
+  }catch(error){
+
+    console.error(error);
+
+    loadingElement.innerHTML = "";
+
+    const tag =
+      document.createElement(
+        "span"
+      );
+
+    tag.className =
+      "ai-tag";
+
+    tag.textContent =
+      "AI";
+
+    loadingElement.appendChild(
+      tag
+    );
+
+    loadingElement.appendChild(
+      document.createTextNode(
+        error.message ||
+        "Something went wrong while answering the doubt."
+      )
+    );
+
+  }
+
+  doubtInput.disabled =
+    false;
+
+  doubtAskBtn.disabled =
+    false;
+
+  doubtInput.focus();
+}
+
+
+/* =========================================================
+   RESULTS
+========================================================= */
+
+function computeGrade(
+  percent
+){
+
+  if(percent >= 90)
+    return "A";
+
+  if(percent >= 80)
+    return "B";
+
+  if(percent >= 70)
+    return "C";
+
+  if(percent >= 60)
+    return "D";
 
   return "F";
 }
 
-function showResults() {
 
-  quizCard.classList.add("hidden");
-  resultsCard.classList.remove("hidden");
+function showResults(){
 
-  const total = questions.length;
-  const correct = score;
+  quizCard.classList.add(
+    "hidden"
+  );
 
-  const wrong = userAnswers.filter(
-    answer => !answer.isCorrect
-  ).length;
+  resultsCard.classList.remove(
+    "hidden"
+  );
 
-  const skipped = skippedQuestionsList.length;
-  const attempted = correct + wrong;
+  const total =
+    questions.length;
 
-  // Skipped questions do not count as wrong.
-  // Accuracy is based only on attempted questions.
-  const accuracy = attempted > 0
-    ? Math.round((correct / attempted) * 100)
-    : 0;
+  const correct =
+    score;
 
-  // Overall percentage is based on the whole generated set.
-  const overallPercentage = total > 0
-    ? Math.round((correct / total) * 100)
-    : 0;
+  const wrong =
+    userAnswers.filter(
+      answer =>
+        !answer.isCorrect
+    ).length;
 
-  const grade = computeGrade(overallPercentage);
+  const skipped =
+    skippedQuestionsList.length;
 
-  gradeLetter.textContent = grade;
+  const attempted =
+    correct + wrong;
+
+  /*
+   * Accuracy:
+   *
+   * Correct / attempted × 100
+   *
+   * Skipped questions are not
+   * counted as wrong.
+   */
+
+  const accuracy =
+    attempted > 0
+
+      ? Math.round(
+          (
+            correct /
+            attempted
+          ) * 100
+        )
+
+      : 0;
+
+  /*
+   * Overall percentage:
+   *
+   * Correct / total × 100
+   */
+
+  const overallPercentage =
+    total > 0
+
+      ? Math.round(
+          (
+            correct /
+            total
+          ) * 100
+        )
+
+      : 0;
+
+  const grade =
+    computeGrade(
+      overallPercentage
+    );
+
+  gradeLetter.textContent =
+    grade;
+
   gradeLetter.className =
-    "grade " + (overallPercentage >= 60 ? "pass" : "fail");
+    "grade " +
+    (
+      overallPercentage >= 60
+        ? "pass"
+        : "fail"
+    );
 
   scoreLine.textContent =
     `${correct} / ${total} CORRECT — ${overallPercentage}%`;
 
-  correctCount.textContent = correct;
-  wrongCount.textContent = wrong;
-  skippedCount.textContent = skipped;
-  accuracyPercent.textContent = `${accuracy}%`;
+  correctCount.textContent =
+    correct;
 
-  // Show skipped question numbers.
-  skippedQuestions.innerHTML = "";
+  wrongCount.textContent =
+    wrong;
 
-  if (skipped > 0) {
+  skippedCount.textContent =
+    skipped;
 
-    const box = document.createElement("div");
-    box.className = "explain";
-    box.style.marginBottom = "18px";
+  accuracyPercent.textContent =
+    `${accuracy}%`;
 
-    const label = document.createElement("div");
-    label.className = "exlabel";
-    label.textContent = "Skipped questions";
 
-    const numbers = document.createElement("div");
-    numbers.className = "extext";
-    numbers.style.fontStyle = "normal";
+  /* =======================================================
+     SKIPPED QUESTIONS
+  ======================================================= */
+
+  skippedQuestions.innerHTML =
+    "";
+
+  if(skipped > 0){
+
+    const box =
+      document.createElement(
+        "div"
+      );
+
+    box.className =
+      "explain";
+
+    box.style.marginBottom =
+      "18px";
+
+    const label =
+      document.createElement(
+        "div"
+      );
+
+    label.className =
+      "exlabel";
+
+    label.textContent =
+      "Skipped questions";
+
+    const numbers =
+      document.createElement(
+        "div"
+      );
+
+    numbers.className =
+      "extext";
+
+    numbers.style.fontStyle =
+      "normal";
 
     numbers.textContent =
       skippedQuestionsList
-        .map(item => `Question ${item.number}`)
+        .map(
+          item =>
+            `Question ${item.number}`
+        )
         .join(" • ");
 
-    box.appendChild(label);
-    box.appendChild(numbers);
+    box.appendChild(
+      label
+    );
 
-    skippedQuestions.appendChild(box);
+    box.appendChild(
+      numbers
+    );
+
+    skippedQuestions.appendChild(
+      box
+    );
+
   }
 
-  reviewList.innerHTML = "";
 
-  userAnswers.forEach((answer, index) => {
+  /* =======================================================
+     REVIEW
+  ======================================================= */
 
-    const div = document.createElement("div");
-    div.className = "review-item";
+  reviewList.innerHTML =
+    "";
 
-    const question = document.createElement("div");
-    question.className = "rq";
+  userAnswers.forEach(
+    (answer,index) => {
 
-    question.textContent =
-      `${answer.originalNumber || index + 1}. ${answer.question}`;
+      const div =
+        document.createElement(
+          "div"
+        );
 
-    const answerLine = document.createElement("div");
+      div.className =
+        "review-item";
 
-    answerLine.className =
-      "ranswer " +
-      (answer.isCorrect ? "correct" : "wrong");
+      const question =
+        document.createElement(
+          "div"
+        );
 
-    let answerText =
-      `Your answer: ${answer.selected} — ` +
-      `${answer.options[answer.selected] || ""}`;
+      question.className =
+        "rq";
 
-    if (!answer.isCorrect) {
+      question.textContent =
+        `${
+          answer.originalNumber ||
+          index + 1
+        }. ${
+          answer.question
+        }`;
 
-      answerText +=
-        ` | Correct: ${answer.correct} — ` +
-        `${answer.options[answer.correct] || ""}`;
+      const answerLine =
+        document.createElement(
+          "div"
+        );
+
+      answerLine.className =
+        "ranswer " +
+        (
+          answer.isCorrect
+            ? "correct"
+            : "wrong"
+        );
+
+      let answerText =
+        `Your answer: ${
+          answer.selected
+        } — ${
+          answer.options[
+            answer.selected
+          ] || ""
+        }`;
+
+      if(
+        !answer.isCorrect
+      ){
+
+        answerText +=
+          ` | Correct: ${
+            answer.correct
+          } — ${
+            answer.options[
+              answer.correct
+            ] || ""
+          }`;
+
+      }
+
+      answerLine.textContent =
+        answerText;
+
+      const explanation =
+        document.createElement(
+          "div"
+        );
+
+      explanation.className =
+        "rex";
+
+      explanation.textContent =
+        answer.explanation ||
+        "";
+
+      div.appendChild(
+        question
+      );
+
+      div.appendChild(
+        answerLine
+      );
+
+      div.appendChild(
+        explanation
+      );
+
+      reviewList.appendChild(
+        div
+      );
+
     }
+  );
 
-    answerLine.textContent = answerText;
-
-    const explanation = document.createElement("div");
-    explanation.className = "rex";
-    explanation.textContent =
-      answer.explanation || "";
-
-    div.appendChild(question);
-    div.appendChild(answerLine);
-    div.appendChild(explanation);
-
-    reviewList.appendChild(div);
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
   });
 }
 
-retakeBtn.addEventListener("click", () => {
 
-  resultsCard.classList.add("hidden");
+/* =========================================================
+   RETAKE
+========================================================= */
 
-  startQuiz();
-});
+retakeBtn.addEventListener(
+  "click",
+  () => {
 
-newTopicBtn.addEventListener("click", () => {
+    resultsCard.classList.add(
+      "hidden"
+    );
 
-  resultsCard.classList.add("hidden");
-  quizCard.classList.add("hidden");
-  setupCard.classList.remove("hidden");
+    startQuiz();
 
-  topicInput.value = "";
-  fileNameLabel.textContent = "";
-  fileInput.value = "";
-  pdfText = "";
-  questions = [];
+  }
+);
 
-  setupError.innerHTML = "";
 
-  updateExtractButton();
-});
+/* =========================================================
+   NEW TOPIC
+========================================================= */
 
-/* =========================
-   Utility
-========================= */
+newTopicBtn.addEventListener(
+  "click",
+  () => {
 
-function escapeHtml(value) {
+    resultsCard.classList.add(
+      "hidden"
+    );
+
+    quizCard.classList.add(
+      "hidden"
+    );
+
+    setupCard.classList.remove(
+      "hidden"
+    );
+
+    topicInput.value = "";
+
+    fileNameLabel.textContent =
+      "";
+
+    fileInput.value =
+      "";
+
+    pdfText =
+      "";
+
+    questions =
+      [];
+
+    setupError.innerHTML =
+      "";
+
+    updateExtractButton();
+
+    window.scrollTo({
+      top:0,
+      behavior:"smooth"
+    });
+
+  }
+);
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(
+  value
+){
 
   return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+
+    .replace(
+      /</g,
+      "&lt;"
+    )
+
+    .replace(
+      />/g,
+      "&gt;"
+    )
+
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
 }
 
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+countInput.value = "40";
+
 updateExtractButton();
+
 </script>
 
 </body>
