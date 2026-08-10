@@ -1,40 +1,26 @@
-VERCEL DEPLOYMENT
+RSMSSB Computer Instructor MCQ Platform - Persistent Version
 
-This project is already structured for Vercel.
+Architecture:
+- new.html: frontend
+- api/index.py: FastAPI API
+- MongoDB Atlas: permanent study metadata, questions, attempts
+- MongoDB GridFS: original uploaded PDFs
 
-Files:
-- new.html          frontend
-- api/index.py      FastAPI backend
-- requirements.txt  Python dependencies
-- vercel.json       Vercel configuration
+Environment variables:
+GEMINI_API_KEY=...
+MONGODB_URI=...
+MONGODB_DB=rsmssb_mcq
+GEMINI_MODEL=gemini-3.6-flash
 
-1. Deploy with GitHub:
-   - Upload this folder to a GitHub repository.
-   - In Vercel, choose Add New -> Project.
-   - Import the repository.
-   - Deploy.
+Vercel:
+1. Put the project in GitHub.
+2. Import into Vercel.
+3. Add all environment variables in Project Settings -> Environment Variables.
+4. Redeploy.
 
-2. Add your Gemini key:
-   Vercel Project -> Settings -> Environment Variables
+Important:
+- Do not commit .env.
+- MongoDB Atlas Network Access must allow the deployed server to connect.
+- The upload endpoint uses multipart/form-data. Very large PDFs may exceed a hosting provider's request-size limit; for large-file production deployments, use object storage/direct browser uploads.
 
-   Name:
-   GEMINI_API_KEY
 
-   Value:
-   your actual Gemini API key
-
-3. Redeploy after adding the variable.
-
-No Uvicorn start command is needed on Vercel.
-
-CLI alternative:
-   npm i -g vercel
-   cd mock-paper-generator-vercel
-   vercel
-   vercel --prod
-
-Local Vercel-style development:
-   vercel dev
-
-IMPORTANT:
-Never commit .env or place the Gemini key inside new.html.
