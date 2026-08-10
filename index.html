@@ -708,6 +708,20 @@ footer.note{
 
 </div>
 
+<script type="module">
+  // Loaded as an ES module (via esm.sh) so the browser can upload files
+  // directly to Vercel Blob storage instead of routing them through our
+  // own API's request body. Exposed on window so the classic <script>
+  // block below (which the rest of the app lives in) can call it.
+  import { upload } from "https://esm.sh/@vercel/blob@1/client";
+
+  window.blobUpload = function (pathname, file) {
+    return upload(pathname, file, {
+      access: "public",
+      handleUploadUrl: `${window.API_BASE || "http://127.0.0.1:8000"}/api/blob-upload`
+    });
+  };
+</script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -789,6 +803,7 @@ const topicPerformance = document.getElementById("topicPerformance");
 
 let pdfText = "";
 let questions = [];
+let seenQuestionTexts = []; // accumulates every question text generated this session, to avoid repeats on "Generate new set"
 let currentIndex = 0;
 let score = 0;
 let userAnswers = [];
@@ -888,6 +903,11 @@ async function handleFile(file) {
         pageNumber +
         " ---\n" +
         pageText;
+
+      if (pdf.numPages > 20) {
+        fileNameLabel.textContent =
+          "Reading " + file.name + " — page " + pageNumber + " of " + pdf.numPages + "…";
+      }
     }
 
     pdfText = text;
@@ -931,7 +951,11 @@ async function handleFile(file) {
    Backend helpers
 ========================= */
 
-const API_BASE = "";
+// Same-origin by default: works with `python -m api.index` (uvicorn on
+// whatever port), `vercel dev` (its own printed port), and production —
+// no more hardcoded-port mismatches.
+const API_BASE = window.location.origin;
+window.API_BASE = API_BASE; // used by the blob-upload module script above
 
 async function parseBackendResponse(response) {
 
@@ -980,15 +1004,30 @@ async function extractQuestions() {
   loadingMsg.textContent = "Saving your study material and generating questions…";
 
   try {
-    const form = new FormData();
-    form.append("file", selectedPdfFile);
-    form.append("text", pdfText);
-    form.append("count", String(desiredCount));
-    form.append("topic", topic);
+    // The PDF (and its extracted text, which can also be several MB for a
+    // 600+ page document) go straight from this browser to Vercel Blob
+    // storage — never through our own API's request body. That's what lets
+    // us handle 100–200MB PDFs despite Vercel Functions capping any request
+    // body at 4.5MB.
+    loadingMsg.textContent = "Uploading PDF…";
+    const pdfBlob = await window.blobUpload(selectedPdfFile.name, selectedPdfFile);
+
+    loadingMsg.textContent = "Uploading extracted text…";
+    const textFile = new File([pdfText], "extracted.txt", { type: "text/plain" });
+    const textBlob = await window.blobUpload(`study-text/${Date.now()}.txt`, textFile);
+
+    loadingMsg.textContent = "Saving your study material and generating questions…";
 
     const response = await fetch(`${API_BASE}/api/studies`, {
       method: "POST",
-      body: form
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        pdf_url: pdfBlob.url,
+        text_url: textBlob.url,
+        filename: selectedPdfFile.name,
+        count: desiredCount,
+        topic: topic
+      })
     });
 
     loadingMsg.textContent = "Building your permanent study page…";
@@ -1003,6 +1042,7 @@ async function extractQuestions() {
       question_count: data.question_count || (data.questions || []).length
     };
     questions = Array.isArray(data.questions) ? data.questions : [];
+    seenQuestionTexts = questions.map(q => q.question).filter(Boolean);
 
     if (!questions.length) throw new Error("No questions could be generated from this document.");
 
@@ -1051,7 +1091,8 @@ newSetBtn.addEventListener("click", async () => {
       body: JSON.stringify({
         text: pdfText,
         count: desiredCount,
-        topic: topic
+        topic: topic,
+        exclude: seenQuestionTexts
       })
     });
 
@@ -1062,6 +1103,10 @@ newSetBtn.addEventListener("click", async () => {
     if (!questions.length) {
       throw new Error("No questions could be generated from this document.");
     }
+
+    seenQuestionTexts = seenQuestionTexts
+      .concat(questions.map(q => q.question).filter(Boolean))
+      .slice(-150); // keep this bounded; the backend also caps what it sends to Gemini
 
     loadingCard.classList.add("hidden");
     startQuiz();
@@ -1256,6 +1301,7 @@ async function practiceStudy(id) {
     currentStudy = study;
     currentStudyId = id;
     questions = Array.isArray(study.questions) ? study.questions : [];
+    seenQuestionTexts = questions.map(q => q.question).filter(Boolean);
     if (!questions.length) throw new Error("This study has no questions.");
     startQuiz();
   } catch (error) {
@@ -1872,6 +1918,7 @@ newTopicBtn.addEventListener("click", () => {
   fileInput.value = "";
   pdfText = "";
   questions = [];
+  seenQuestionTexts = [];
 
   setupError.innerHTML = "";
 
