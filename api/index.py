@@ -849,7 +849,7 @@ def root():
         .resolve()
         .parent
         .parent
-        / "new.html"
+        / "index.html"
     )
 
     if not frontend.exists():
@@ -858,7 +858,7 @@ def root():
             "status": "ok",
             "message": (
                 "RSMSSB MCQ API is running. "
-                "new.html was not found."
+                "index.html was not found."
             )
         }
 
